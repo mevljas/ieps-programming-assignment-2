@@ -1,5 +1,7 @@
 import sys
 
+from extractors.regular_expressions import overstock
+
 
 def main() -> None:
     if len(sys.argv) != 2:
@@ -8,7 +10,7 @@ def main() -> None:
     _, algorithm = sys.argv
     match algorithm:
         case 'A':
-            print("Not yet implemented.", file=sys.stderr)
+            overstock.extract()
         case 'B':
             print("Not yet implemented.", file=sys.stderr)
         case 'C':
