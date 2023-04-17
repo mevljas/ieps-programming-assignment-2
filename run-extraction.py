@@ -1,6 +1,6 @@
 import sys
 
-from extractors.regular_expressions import overstock
+from extractors.overstock import overstock
 
 
 def main() -> None:
@@ -10,7 +10,7 @@ def main() -> None:
     _, algorithm = sys.argv
     match algorithm:
         case 'A':
-            overstock.extract()
+            overstock.regular_expressions()
         case 'B':
             print("Not yet implemented.", file=sys.stderr)
         case 'C':
