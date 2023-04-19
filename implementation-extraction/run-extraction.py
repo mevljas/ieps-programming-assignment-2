@@ -10,7 +10,7 @@ def main() -> None:
     _, algorithm = sys.argv
     match algorithm:
         case 'A':
-            overstock.regular_expressions()
+            overstock.run_regular_expressions()
         case 'B':
             print("Not yet implemented.", file=sys.stderr)
         case 'C':
