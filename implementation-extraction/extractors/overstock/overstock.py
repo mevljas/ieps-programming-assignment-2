@@ -3,8 +3,9 @@ import json
 
 from util.util import read_file
 
-jewelry_html_1 = read_file("../input-extraction/overstock.com/jewelry01.html")
-jewelry_html_2 = read_file("../input-extraction/overstock.com/jewelry02.html")
+# on macOS, the following encoding is needed to read the files: "cp1252"
+jewelry_html_1 = read_file("../input-extraction/overstock.com/jewelry01.html", "cp1252")
+jewelry_html_2 = read_file("../input-extraction/overstock.com/jewelry02.html", "cp1252")
 
 
 def regular_expressions(html) -> None:

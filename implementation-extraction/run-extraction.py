@@ -1,6 +1,7 @@
 import sys
 
 from extractors.overstock import overstock
+from extractors.rtvslo import rtvslo
 
 
 def main() -> None:
@@ -11,6 +12,7 @@ def main() -> None:
     match algorithm:
         case 'A':
             overstock.run_regular_expressions()
+            rtvslo.run_regular_expressions()
         case 'B':
             print("Not yet implemented.", file=sys.stderr)
         case 'C':
