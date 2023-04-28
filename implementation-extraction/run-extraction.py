@@ -13,8 +13,11 @@ def main() -> None:
         case 'A':
             overstock.run_regular_expressions()
             rtvslo.run_regular_expressions()
+            # TODO: regex for additional site
         case 'B':
-            print("Not yet implemented.", file=sys.stderr)
+            overstock.run_xpath()
+            rtvslo.run_xpath()
+            # TODO: xpath for additional site
         case 'C':
             print("Not yet implemented.", file=sys.stderr)
         case _:

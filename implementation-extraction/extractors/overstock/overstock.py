@@ -1,6 +1,8 @@
 import re
 import json
 
+from bs4 import BeautifulSoup
+from lxml import etree
 from util.util import read_file
 
 # on macOS, the following encoding is needed to read the files: "cp1252"
@@ -51,9 +53,60 @@ def regular_expressions(html) -> None:
     # output JSON 
     print(json.dumps(data, indent=4))
 
+def xpath(html) -> None:
+    soup = BeautifulSoup(html, 'html.parser')
+    dom = etree.HTML(str(soup))
+
+    items = dom.xpath('/html/body/table[2]/tbody/tr[1]/td[5]/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[@bgcolor]')
+    data = []
+
+    for item in items:
+        # Title
+        title = item.xpath('./td[2]/a/b/text()')
+        # if missing title then item is not jewelry
+        if not title:
+            continue
+        title = title[0]
+
+        # List Price
+        list_price = item.xpath('./td[2]/table/tbody/tr/td[1]/table/tbody/tr[1]/td[2]/s/text()')[0]
+        
+        # Price
+        price = item.xpath('./td[2]/table/tbody/tr/td[1]/table/tbody/tr[2]/td[2]/span/b/text()')[0]
+        
+        # Saving and Saving Percent
+        saving_and_saving_percent = item.xpath('./td[2]/table/tbody/tr/td[1]/table/tbody/tr[3]/td[2]/span/text()')[0]
+        saving = saving_and_saving_percent.split("(")[0].strip()
+        saving_percent = saving_and_saving_percent.split("(")[1].split(")")[0].strip()
+        
+        # Content
+        content = item.xpath('./td[2]/table/tbody/tr/td[2]/span/text()')[0]
+        # remove everything after <br tag (anchor tags, spans, etc.) and replace newlines inside the text
+        content = content.split("<br")[0].replace("\n", " ").strip()
+    
+        # construct JSON object with extracted data
+        data.append({
+            "Title": title,
+            "ListPrice": list_price,
+            "Price": price,
+            "Saving": saving,
+            "SavingPercent": saving_percent,
+            "Content": content
+        })
+
+    # output JSON 
+    print(json.dumps(data, indent=4))
+
 def run_regular_expressions() -> None:
     print("Running regular expressions for first page...")
     regular_expressions(jewelry_html_1)
     print("Running regular expressions for second page...")
     regular_expressions(jewelry_html_2)
+    print("Done.")
+
+def run_xpath() -> None:
+    print("Running XPath for first page...")
+    xpath(jewelry_html_1)
+    print("Running XPath for second page...")
+    xpath(jewelry_html_2)
     print("Done.")
