@@ -2,6 +2,7 @@ import sys
 
 from extractors.overstock import overstock
 from extractors.rtvslo import rtvslo
+from extractors.fri import fri
 
 
 def main() -> None:
@@ -13,7 +14,7 @@ def main() -> None:
         case 'A':
             overstock.run_regular_expressions()
             rtvslo.run_regular_expressions()
-            # TODO: regex for additional site
+            fri.run_regular_expressions()
         case 'B':
             overstock.run_xpath()
             rtvslo.run_xpath()
