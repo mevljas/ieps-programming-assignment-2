@@ -18,7 +18,7 @@ def main() -> None:
         case 'B':
             overstock.run_xpath()
             rtvslo.run_xpath()
-            # TODO: xpath for additional site
+            fri.run_xpath()
         case 'C':
             print("Not yet implemented.", file=sys.stderr)
         case _:
