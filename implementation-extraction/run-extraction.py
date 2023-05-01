@@ -1,8 +1,8 @@
 import sys
 
-from extractors.overstock import overstock
-from extractors.rtvslo import rtvslo
-from extractors.fri import fri
+from extractors import overstock
+from extractors import rtvslo
+from extractors import fri
 
 
 def main() -> None:
@@ -20,7 +20,9 @@ def main() -> None:
             rtvslo.run_xpath()
             fri.run_xpath()
         case 'C':
-            print("Not yet implemented.", file=sys.stderr)
+            overstock.run_road_warrior()
+            rtvslo.run_road_warrior()
+            fri.run_road_warrior()
         case _:
             print("Unsupported algorithm type provided.", file=sys.stderr)
 
