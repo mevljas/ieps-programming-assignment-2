@@ -68,7 +68,7 @@ def get_tag_sublist(tokens: [str], index: int) -> [str]:
 
 def count_occurrences(wrapper_parts: [str], part_index: int) -> int:
     """
-    Counts occurences of the part at the index part_index from the part_index to the end of the wrapper_parts list.
+    Counts occurrences of the part at the index part_index from the part_index to the end of the wrapper_parts list.
     :param wrapper_parts: list of wrapper parts.
     :param part_index: index of the searched part.
     :return:
