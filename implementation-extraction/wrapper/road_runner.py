@@ -1,14 +1,19 @@
 from bs4 import BeautifulSoup
 
 
-def tokenize(body: any) -> str:
-    yield f'<{body.name}>'
-    for i in body.contents:
-        if not isinstance(i, str):
-            yield from tokenize(body=i)
+def generate_html_tags(html_element: any) -> [str]:
+    """
+    Generate HTML tags (tokens) from BeautifulSoup HTML elements.
+    :param html_element: BeautifulSoup element
+    :return: a list of HTML tags.
+    """
+    yield f'<{html_element.name}>'
+    for child in html_element.contents:
+        if not isinstance(child, str):
+            yield from generate_html_tags(html_element=child)
         else:
-            yield from i.split()
-    yield f'</{body.name}>'
+            yield from child.split()
+    yield f'</{html_element.name}>'
 
 
 def group_elements(tokens: [str]) -> [str]:
@@ -211,8 +216,8 @@ def run_road_runner(first_html: str, second_html: str) -> None:
     second_soup_cleaned = clean_html_soup(soup=second_soup)
 
     # Tokenize.
-    first_page_tokens = list(tokenize(body=first_soup_cleaned.body))
-    second_page_tokens = list(tokenize(body=second_soup_cleaned.body))
+    first_page_tokens = list(generate_html_tags(html_element=first_soup_cleaned.body))
+    second_page_tokens = list(generate_html_tags(html_element=second_soup_cleaned.body))
 
     # Filter tokens.
     first_page_tokens_filtered = filter_tokens(tokens=first_page_tokens)
