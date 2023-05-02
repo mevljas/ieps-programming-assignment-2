@@ -81,123 +81,137 @@ def count_occurrences(wrapper_parts: [str], part_index: int) -> int:
     return parts_count
 
 
-def find_first_match(first_page_token_groups: [str], second_page_token_groups: [str], first_page_counter: int,
-                     second_page_counter: int) -> ([str], int, int):
+def find_first_match(first_page: [str], second_page: [str], first_page_index: int,
+                     second_page_index: int) -> ([str], int, int):
     """
     Finds the first match between token groups of both pages.
-    :param first_page_token_groups: first page tokens.
-    :param second_page_token_groups: second page tokens.
-    :param first_page_counter: index of the first page token.
-    :param second_page_counter: index. of the second page token.
-    :return: wrapper, first page counter and second page counter.
+    :param first_page: first page tokens.
+    :param second_page: second page tokens.
+    :param first_page_index: index of the first page token.
+    :param second_page_index: index. of the second page token.
+    :return: wrapper, first page index and second page index.
     """
-    while first_page_counter < len(first_page_token_groups):
-        while second_page_counter < len(second_page_token_groups):
-            wrapper = generate_wrapper(first_page_token_groups[first_page_counter],
-                                       second_page_token_groups[second_page_counter])
+    while first_page_index < len(first_page):
+        while second_page_index < len(second_page):
+            wrapper = generate_wrapper(first_page[first_page_index],
+                                       second_page[second_page_index])
             if len(wrapper) != 0:
-                return wrapper, first_page_counter, second_page_counter
-            second_page_counter += 1
-        first_page_counter += 1
+                return wrapper, first_page_index, second_page_index
+            second_page_index += 1
+        first_page_index += 1
     return None
 
 
-def generate_wrapper(first_page_tokens: [str], second_page_tokens: [str]) -> [str]:
+def generate_wrapper(first_page: [str], second_page: [str]) -> [str]:
     """
     Generates the wrapper from the tokens of both pages.
-    :param first_page_tokens: a list of first page's tokens.
-    :param second_page_tokens: a list of second page's tokens
+    :param first_page: a list of first page's tokens.
+    :param second_page: a list of second page's tokens
     :return: a wrapper list.
     """
-    first_page_token_counter = 0
-    second_page_token_counter = 0
+    first_page_index = 0
+    second_page_index = 0
     wrapper = []
 
-    if len(first_page_tokens) == len(second_page_tokens):
-        while first_page_token_counter < len(first_page_tokens) and second_page_token_counter < len(second_page_tokens):
-            if first_page_tokens[first_page_token_counter] == second_page_tokens[second_page_token_counter]:
-                wrapper.append(first_page_tokens[first_page_token_counter])
+    if len(first_page) == len(second_page):
+        # Pages are both equally long.
+        while first_page_index < len(first_page) and second_page_index < len(second_page):
+            if first_page[first_page_index] == second_page[second_page_index]:
+                # Tokens are the same on both pages. Add it to the wrapper.
+                wrapper.append(first_page[first_page_index])
             else:
-                if first_page_tokens[first_page_token_counter][0] != "<":
+                # Tokens differ.
+                if first_page[first_page_index][0] != "<":
+                    # Token is not an opening tag.
                     wrapper.append("#PCDATA")
                 else:
                     return ""
-            first_page_token_counter += 1
-            second_page_token_counter += 1
+            first_page_index += 1
+            second_page_index += 1
     else:
+        # Pages are not equally long.
         wrapper_parts = []
         first_page_token_groups = []
         second_page_token_groups = []
-        first_page_token_counter = 1
-        second_page_token_counter = 1
-        while first_page_token_counter < len(first_page_tokens) - 1:
-            tag1_sublist = get_tag_sublist(tokens=first_page_tokens, index=first_page_token_counter)
-            first_page_token_counter += len(tag1_sublist)
-            first_page_token_groups.append(tag1_sublist)
-        while second_page_token_counter < len(second_page_tokens) - 1:
-            tag2_sublist = get_tag_sublist(tokens=second_page_tokens, index=second_page_token_counter)
-            second_page_token_counter += len(tag2_sublist)
-            second_page_token_groups.append(tag2_sublist)
-        tag1_sublist_counter = 0
-        tag2_sublist_counter = 0
-        while tag1_sublist_counter < len(first_page_token_groups) and tag2_sublist_counter < len(
-                second_page_token_groups):
-            wrapper_part = generate_wrapper(first_page_token_groups[tag1_sublist_counter],
-                                            second_page_token_groups[tag2_sublist_counter])
+        first_page_index = 1
+        second_page_index = 1
+        # Group together tokens inside top level tags.
+        while first_page_index < len(first_page) - 1:
+            first_page_tag_group = get_tag_sublist(tokens=first_page, index=first_page_index)
+            first_page_index += len(first_page_tag_group)
+            first_page_token_groups.append(first_page_tag_group)
+        while second_page_index < len(second_page) - 1:
+            second_page_tag_group = get_tag_sublist(tokens=second_page, index=second_page_index)
+            second_page_index += len(second_page_tag_group)
+            second_page_token_groups.append(second_page_tag_group)
+        first_page_group_index = 0
+        second_page_group_index = 0
+        while first_page_group_index < len(first_page_token_groups) \
+                and second_page_group_index < len(second_page_token_groups):
+            # Concatenate together opening and closing tags.
+            wrapper_part = generate_wrapper(first_page=first_page_token_groups[first_page_group_index],
+                                            second_page=second_page_token_groups[second_page_group_index])
             if len(wrapper_part) != 0:
+                # Save wrapper part.
                 wrapper_parts.append(wrapper_part)
-                tag1_sublist_counter += 1
-                tag2_sublist_counter += 1
+                first_page_group_index += 1
+                second_page_group_index += 1
             else:
+                # Find partial match?
                 first_match = find_first_match(
-                    first_page_token_groups=first_page_token_groups,
-                    second_page_token_groups=second_page_token_groups,
-                    first_page_counter=tag1_sublist_counter + 1,
-                    second_page_counter=tag2_sublist_counter + 1)
+                    first_page=first_page_token_groups,
+                    second_page=second_page_token_groups,
+                    first_page_index=first_page_group_index + 1,
+                    second_page_index=second_page_group_index + 1)
                 if first_match:
-                    wrapper_part, first_page_counter, second_page_counter = first_match
-                    while tag1_sublist_counter != first_page_counter:
+                    wrapper_part, first_page_index, second_page_index = first_match
+                    while first_page_group_index != first_page_index:
                         wrapper_parts.append("(")
-                        wrapper_parts.append("".join(first_page_token_groups[tag1_sublist_counter]))
+                        wrapper_parts.append("".join(first_page_token_groups[first_page_group_index]))
                         wrapper_parts.append(")?")
-                        tag1_sublist_counter += 1
-                    while tag2_sublist_counter != second_page_counter:
+                        first_page_group_index += 1
+                    while second_page_group_index != second_page_index:
                         wrapper_parts.append("(")
-                        wrapper_parts.append("".join(second_page_token_groups[tag2_sublist_counter]))
+                        wrapper_parts.append("".join(second_page_token_groups[second_page_group_index]))
                         wrapper_parts.append(")?")
-                        tag2_sublist_counter += 1
+                        second_page_group_index += 1
                     wrapper_parts.append(wrapper_part)
-                    tag1_sublist_counter += 1
-                    tag2_sublist_counter += 1
+                    first_page_group_index += 1
+                    second_page_group_index += 1
                 else:
                     if len(first_page_token_groups) == len(second_page_token_groups) and len(
                             first_page_token_groups) == 1:
+                        # Both groups contain only one element.
                         while len(first_page_token_groups[0]) != len(second_page_token_groups[0]):
+                            # While first items of both token groups are of a different length.
                             if len(first_page_token_groups[0]) > len(second_page_token_groups[0]):
-                                r1 = get_tag_sublist(tokens=first_page_token_groups[0], index=1)
-                                first_page_token_groups[0] = list(r1)
+                                # Remove the first tag
+                                tag_sublist = get_tag_sublist(tokens=first_page_token_groups[0], index=1)
+                                first_page_token_groups[0] = list(tag_sublist)
                             else:
-                                r1 = get_tag_sublist(tokens=second_page_token_groups[0], index=1)
-                                second_page_token_groups[0] = list(r1)
-                        wrapper_part = generate_wrapper(first_page_token_groups[0], second_page_token_groups[0])
+                                # Remove the first tag
+                                tag_sublist = get_tag_sublist(tokens=second_page_token_groups[0], index=1)
+                                second_page_token_groups[0] = list(tag_sublist)
+                        wrapper_part = generate_wrapper(first_page=first_page_token_groups[0],
+                                                        second_page=second_page_token_groups[0])
                         if len(wrapper_part) == 0:
                             break
                         else:
                             wrapper_parts.append(wrapper_part)
                     else:
                         break
-                    tag1_sublist_counter += 1
-                    tag2_sublist_counter += 1
+                    first_page_group_index += 1
+                    second_page_group_index += 1
         wrapper_part_counter = 0
         while wrapper_part_counter < len(wrapper_parts):
-            first_page_counter = count_occurrences(wrapper_parts=wrapper_parts, part_index=wrapper_part_counter)
-            if first_page_counter > 1:
+            first_page_index = count_occurrences(wrapper_parts=wrapper_parts, part_index=wrapper_part_counter)
+            if first_page_index > 1:
                 wrapper.append("(")
                 wrapper.append(wrapper_parts[wrapper_part_counter])
                 wrapper.append(")+")
             else:
                 wrapper.append(wrapper_parts[wrapper_part_counter])
-            wrapper_part_counter += first_page_counter
+            wrapper_part_counter += first_page_index
     return "\n".join(wrapper)
 
 
@@ -252,6 +266,6 @@ def road_runner(first_html: str, second_html: str) -> None:
     second_page_tokens_concatenated = group_elements(tokens=second_page_tokens_filtered)
 
     # Generate wrapper.
-    wrapper = generate_wrapper(first_page_tokens=first_page_tokens_concatenated,
-                               second_page_tokens=second_page_tokens_concatenated)
+    wrapper = generate_wrapper(first_page=first_page_tokens_concatenated,
+                               second_page=second_page_tokens_concatenated)
     print(wrapper)
