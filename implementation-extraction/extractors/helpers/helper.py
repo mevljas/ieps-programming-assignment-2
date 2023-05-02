@@ -29,3 +29,12 @@ def extract_text_from_html(html: str) -> str:
     content_text = '\n'.join(line.strip() for line in content_lines if line.strip())
     
     return content_text
+
+def prettify_text(html: str) -> str:
+    # decode html whitespaces
+    content = re.sub(r'&nbsp;', ' ', html)
+    # remove leading and trailing whitespace and unnecessary newlines
+    content_lines = content.split('\n')
+    content_text = '\n'.join(line.strip() for line in content_lines if line.strip())
+    
+    return content_text

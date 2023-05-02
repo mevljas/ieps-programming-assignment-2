@@ -3,7 +3,7 @@ import json
 
 from bs4 import BeautifulSoup
 from lxml import etree
-from extractors.helpers.helper import read_file, extract_text_from_html
+from extractors.helpers.helper import read_file, prettify_text
 from wrapper.road_runner import run_road_runner
 
 # on macOS, the following encoding is needed to read the files: "utf-8"
@@ -32,9 +32,9 @@ def regular_expressions(html) -> None:
     lead = re.findall(lead_regex, html)[0]
 
     # Content
-    content_regex = r'<div class="article-body">(.*?)<div class="gallery">'
-    content = re.findall(content_regex, html, re.S)[0]
-    content_text = extract_text_from_html(content)
+    content_regex = r'^(?:.*)<div class="article-body">|<div class="gallery">(?:.*)$|<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>|<[^>]*>'
+    content = re.sub(content_regex, '', html, flags=re.S)
+    content = prettify_text(content)
 
     # output JSON
     data = {
@@ -43,7 +43,7 @@ def regular_expressions(html) -> None:
         "Title": title,
         "Subtitle": subtitle,
         "Lead": lead,
-        "Content": content_text
+        "Content": content
     }
     print(json.dumps(data, indent=4, ensure_ascii=False))
 

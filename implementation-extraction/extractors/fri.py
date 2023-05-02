@@ -3,7 +3,7 @@ import json
 
 from bs4 import BeautifulSoup
 from lxml import etree
-from extractors.helpers.helper import read_file, extract_text_from_html
+from extractors.helpers.helper import read_file, prettify_text
 from wrapper.road_runner import run_road_runner
 
 # on macOS, the following encoding is needed to read the files: "utf-8"
@@ -26,12 +26,12 @@ def regular_expressions(html) -> None:
     # Lead
     lead_regex = r'<div class="novica-content">[\s\S]*?<p\s?(?:class="rtejustify")?>(?:<.*?>)*(.*?)(?:<.*?>)*<\/p>'
     lead = re.findall(lead_regex, html)[0]
-    lead = lead.replace('&nbsp;', ' ') # replace any &nbsp; that can be in the text
+    lead = prettify_text(lead)
 
     # Content
-    content_regex = r'<div class="novica-content">[\n\s\S]*?<br>[\n\s]*(.*?)<\/div>'
-    content = re.findall(content_regex, html, re.S)[0]
-    content_text = extract_text_from_html(content)
+    content_regex = r'^(?:.*)<div class="novica-content">[\n\s\S]*?<br>[\n\s]*|<\/div>(?:.*)$|<[^>]*>|.\n{2,}'
+    content = re.sub(content_regex, '', html, flags=re.S)
+    content = prettify_text(content)
 
     # output JSON
     data = {
@@ -39,7 +39,7 @@ def regular_expressions(html) -> None:
         "Title": title,
         "Category": category,
         "Lead": lead,
-        "Content": content_text
+        "Content": content
     }
     print(json.dumps(data, indent=4, ensure_ascii=False))
 
@@ -66,9 +66,7 @@ def xpath(html) -> None:
     content_root = dom.xpath('//*[@id="katedre-container"]/div[3]/*[position() > 2]')
     # join all text nodes
     article_text = "\n".join([child.xpath('string()').strip() for child in content_root])
-    # remove empty lines
-    article_lines = article_text.split('\n')
-    article_text = '\n'.join(line.strip() for line in article_lines if line.strip())
+    article_text = prettify_text(article_text)
 
     # output JSON
     data = {
