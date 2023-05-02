@@ -28,10 +28,8 @@ def regular_expressions(html) -> None:
     savings = re.findall(saving_regex, html)
 
     # Content
-    content_regex = r'<span class="normal">([\S\s]*?)</span>'
+    content_regex = r'<span class="normal">([\S\s]*?)[\s]*<br>'
     contents = re.findall(content_regex, html)
-    # remove everything after <br tag (anchor tags, spans, etc.) and replace newlines inside the text
-    contents = [content.split("<br")[0].replace("\n", " ").strip() for content in contents]
 
     # check for missing values
     if not (len(titles) == len(list_prices) == len(prices) == len(savings) == len(contents)):
@@ -47,7 +45,7 @@ def regular_expressions(html) -> None:
             "Price": prices[i],
             "Saving": savings[i][0],
             "SavingPercent": savings[i][1],
-            "Content": contents[i]
+            "Content": contents[i].replace("\n", " ").strip() # prettify text
         })
 
     # output JSON 

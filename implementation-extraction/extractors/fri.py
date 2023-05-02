@@ -3,7 +3,7 @@ import json
 
 from bs4 import BeautifulSoup
 from lxml import etree
-from extractors.helpers.helper import read_file
+from extractors.helpers.helper import read_file, extract_text_from_html
 from wrapper.road_runner import run_road_runner
 
 # on macOS, the following encoding is needed to read the files: "utf-8"
@@ -24,30 +24,22 @@ def regular_expressions(html) -> None:
     category = re.findall(category_regex, html)[0]
 
     # Lead
-    lead_regex = r'<p(?:\s+class="rtejustify")?>(?:<[^>]*>)*(.*?)(?:<\/[^>]*>)*<\/p'
-    lead = re.findall(lead_regex, html)[0].strip()
-
-    soup = BeautifulSoup(lead, 'html.parser')
-    lead_text = soup.get_text(separator='\n\n').strip()
-    lead_lines = lead_text.split('\n')
-    lead_text = ' '.join(line.strip() for line in lead_lines if line.strip())
+    lead_regex = r'<div class="novica-content">[\s\S]*?<p\s?(?:class="rtejustify")?>(?:<.*?>)*(.*?)(?:<.*?>)*<\/p>'
+    lead = re.findall(lead_regex, html)[0]
+    lead = lead.replace('&nbsp;', ' ') # replace any &nbsp; that can be in the text
 
     # Content
     content_regex = r'<div class="novica-content">[\n\s\S]*?<br>[\n\s]*(.*?)<\/div>'
     content = re.findall(content_regex, html, re.S)[0]
-
-    soup = BeautifulSoup(content, 'html.parser')
-    article_text = soup.get_text(separator='\n\n').strip()
-    article_lines = article_text.split('\n')
-    article_text = ' '.join(line.strip() for line in article_lines if line.strip())
+    content_text = extract_text_from_html(content)
 
     # output JSON
     data = {
         "PublishedDate": published_date,
         "Title": title,
         "Category": category,
-        "Lead": lead_text,
-        "Content": article_text
+        "Lead": lead,
+        "Content": content_text
     }
     print(json.dumps(data, indent=4, ensure_ascii=False))
 
