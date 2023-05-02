@@ -1,5 +1,8 @@
 from bs4 import BeautifulSoup
 
+from wrapper.constants import DATA_FIELD, OPTIONAL_FIELD, ITERATOR_FIELD
+
+
 def generate_html_tags(html_element: any) -> [str]:
     """
     Generate HTML tags (tokens) from BeautifulSoup HTML elements.
@@ -123,7 +126,7 @@ def generate_wrapper(first_page: [str], second_page: [str]) -> [str]:
                 # Tokens differ.
                 if first_page[first_page_index][0] != "<":
                     # Token is not an opening tag.
-                    wrapper.append("#PCDATA")
+                    wrapper.append(DATA_FIELD)
                 else:
                     return ""
             first_page_index += 1
@@ -168,12 +171,12 @@ def generate_wrapper(first_page: [str], second_page: [str]) -> [str]:
                     while first_page_group_index != first_page_index:
                         wrapper_parts.append("(")
                         wrapper_parts.append("".join(first_page_token_groups[first_page_group_index]))
-                        wrapper_parts.append(")?")
+                        wrapper_parts.append(OPTIONAL_FIELD)
                         first_page_group_index += 1
                     while second_page_group_index != second_page_index:
                         wrapper_parts.append("(")
                         wrapper_parts.append("".join(second_page_token_groups[second_page_group_index]))
-                        wrapper_parts.append(")?")
+                        wrapper_parts.append(OPTIONAL_FIELD)
                         second_page_group_index += 1
                     wrapper_parts.append(wrapper_part)
                     first_page_group_index += 1
@@ -208,7 +211,7 @@ def generate_wrapper(first_page: [str], second_page: [str]) -> [str]:
             if first_page_index > 1:
                 wrapper.append("(")
                 wrapper.append(wrapper_parts[wrapper_part_counter])
-                wrapper.append(")+")
+                wrapper.append(ITERATOR_FIELD)
             else:
                 wrapper.append(wrapper_parts[wrapper_part_counter])
             wrapper_part_counter += first_page_index
