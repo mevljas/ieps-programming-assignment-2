@@ -234,6 +234,7 @@ def create_html_soup(html: str) -> BeautifulSoup:
     :param html: html data to be used.
     :return: Generated BeautifulSoup object.
     """
+    #TODO: use XHTML to fix broken tags.
     soup = BeautifulSoup(html, "html.parser")
     return soup
 
