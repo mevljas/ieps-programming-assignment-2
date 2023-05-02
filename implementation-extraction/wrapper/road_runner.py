@@ -248,8 +248,8 @@ def run_road_runner(first_html: str, second_html: str) -> None:
     second_page_tokens_filtered = filter_tokens(tokens=second_page_tokens)
 
     # Concatenate multiple elements between tags.
-    first_page_tokens_concatenated = group_elements(first_page_tokens_filtered)
-    second_page_tokens_concatenated = group_elements(second_page_tokens_filtered)
+    first_page_tokens_concatenated = group_elements(tokens=first_page_tokens_filtered)
+    second_page_tokens_concatenated = group_elements(tokens=second_page_tokens_filtered)
 
     # Generate wrapper.
     wrapper = generate_wrapper(first_page_tokens=first_page_tokens_concatenated,
