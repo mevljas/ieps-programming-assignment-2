@@ -4,7 +4,7 @@ import json
 from bs4 import BeautifulSoup
 from lxml import etree
 from extractors.helpers.helper import read_file
-from wrapper.road_runner import run_road_runner
+from wrapper.road_runner import road_runner
 
 # on macOS, the following encoding is needed to read the files: "cp1252"
 jewelry_html_1 = read_file("../input-extraction/overstock.com/jewelry01.html", "cp1252")
@@ -109,5 +109,5 @@ def run_xpath() -> None:
     xpath(jewelry_html_2)
     print("Done.")
 
-def run_road_warrior() -> None:
-    run_road_runner(first_html=jewelry_html_1, second_html=jewelry_html_2)
+def run_road_runner() -> None:
+    road_runner(first_html=jewelry_html_1, second_html=jewelry_html_2)

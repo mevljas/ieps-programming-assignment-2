@@ -230,7 +230,7 @@ def filter_tokens(tokens: [str]) -> [str]:
     return list(filter(lambda token: token not in ["<br>", "</br>", "<strong>", "</strong>", "<em>"], tokens))
 
 
-def run_road_runner(first_html: str, second_html: str) -> None:
+def road_runner(first_html: str, second_html: str) -> None:
     # Generate Beautiful soup objects.
     first_soup = create_html_soup(html=first_html)
     second_soup = create_html_soup(html=second_html)

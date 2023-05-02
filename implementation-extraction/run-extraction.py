@@ -20,9 +20,9 @@ def main() -> None:
             rtvslo.run_xpath()
             fri.run_xpath()
         case 'C':
-            overstock.run_road_warrior()
-            rtvslo.run_road_warrior()
-            fri.run_road_warrior()
+            overstock.run_road_runner()
+            rtvslo.run_road_runner()
+            fri.run_road_runner()
         case _:
             print("Unsupported algorithm type provided.", file=sys.stderr)
 

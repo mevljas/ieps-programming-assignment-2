@@ -4,7 +4,7 @@ import json
 from bs4 import BeautifulSoup
 from lxml import etree
 from extractors.helpers.helper import read_file, prettify_text
-from wrapper.road_runner import run_road_runner
+from wrapper.road_runner import road_runner
 
 # on macOS, the following encoding is needed to read the files: "utf-8"
 audi_html = read_file("../input-extraction/rtvslo.si/Audi A6 50 TDI quattro_ nemir v premijskem razredu - RTVSLO.si.html", "utf-8")
@@ -110,5 +110,5 @@ def run_xpath() -> None:
     xpath(volvo_html)
     print("Done.")
 
-def run_road_warrior() -> None:
-    run_road_runner(first_html=audi_html, second_html=volvo_html)
+def run_road_runner() -> None:
+    road_runner(first_html=audi_html, second_html=volvo_html)
