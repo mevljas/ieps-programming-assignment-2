@@ -175,4 +175,4 @@ def generate_wrapper(wrapper: [str], sample: [str]) -> [str]:
             else:
                 solution.append(wrapper_parts[wrapper_part_counter])
             wrapper_part_counter += wrapper_index
-    return "\n".join(solution)
+    return solution
