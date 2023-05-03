@@ -25,6 +25,23 @@ def get_tag_sublist(tokens: [str], index: int) -> [str]:
     return tokens_subset
 
 
+def wrapper_generalization(solution: [str], tokens_index: int, length: int, tokens: [str]) -> ([str], int):
+    """
+    Generalize the wrapper by incorporating optional fields.
+    :param solution: currently generated wrapper.
+    :param tokens_index: current token index.
+    :param length: maximum allowed length.
+    :param tokens: page tokens.
+    :return: generalized solution and latest tokens index.
+    """
+    while tokens_index != length:
+        solution.append("(")
+        solution.append("".join(tokens[tokens_index]))
+        solution.append(OPTIONAL_FIELD)
+        tokens_index += 1
+    return solution, tokens_index + 1
+
+
 def count_occurrences(wrapper_parts: [str], part_index: int) -> int:
     """
     Counts occurrences of the part at the index part_index from the part_index to the end of the wrapper_parts list.
@@ -40,15 +57,16 @@ def count_occurrences(wrapper_parts: [str], part_index: int) -> int:
     return parts_count
 
 
-def find_first_match(first_page: [str], second_page: [str], first_page_index: int,
-                     second_page_index: int) -> ([str], int, int):
+def find_optional_field(first_page: [str], second_page: [str], first_page_index: int,
+                        second_page_index: int) -> ([str], int, int):
     """
-    Finds the first match between token groups of both pages.
+    Finds minimal optional field between two pages (token groups).
+    Optional Pattern Location by Cross–Search.
     :param first_page: first page tokens.
     :param second_page: second page tokens.
     :param first_page_index: index of the first page token.
-    :param second_page_index: index. of the second page token.
-    :return: road_runner, first page index and second page index.
+    :param second_page_index: index of the second page token.
+    :return: wrapper, first page index and second page index.
     """
     while first_page_index < len(first_page):
         while second_page_index < len(second_page):
@@ -92,87 +110,85 @@ def generate_wrapper(wrapper: [str], sample: [str]) -> [str]:
     else:
         # Pages are not equally long.
         # TAG MISMATCHES
-        wrapper_parts = []
-        first_page_token_groups = []
-        second_page_token_groups = []
+        solution_parts = []
+        wrapper_token_groups = []
+        sample_token_groups = []
         wrapper_index = 1
         sample_index = 1
         # Group together tokens inside top level tags.
         while wrapper_index < len(wrapper) - 1:
             first_page_tag_group = get_tag_sublist(tokens=wrapper, index=wrapper_index)
             wrapper_index += len(first_page_tag_group)
-            first_page_token_groups.append(first_page_tag_group)
+            wrapper_token_groups.append(first_page_tag_group)
         while sample_index < len(sample) - 1:
             second_page_tag_group = get_tag_sublist(tokens=sample, index=sample_index)
             sample_index += len(second_page_tag_group)
-            second_page_token_groups.append(second_page_tag_group)
-        first_page_group_index = 0
-        second_page_group_index = 0
-        while first_page_group_index < len(first_page_token_groups) \
-                and second_page_group_index < len(second_page_token_groups):
+            sample_token_groups.append(second_page_tag_group)
+        wrapper_group_index = 0
+        sample_group_index = 0
+        while wrapper_group_index < len(wrapper_token_groups) \
+                and sample_group_index < len(sample_token_groups):
             # Concatenate together opening and closing tags.
-            wrapper_part = generate_wrapper(wrapper=first_page_token_groups[first_page_group_index],
-                                            sample=second_page_token_groups[second_page_group_index])
-            if len(wrapper_part) != 0:
-                # Save road_runner part.
-                wrapper_parts.append(wrapper_part)
-                first_page_group_index += 1
-                second_page_group_index += 1
+            partial_solution = generate_wrapper(wrapper=wrapper_token_groups[wrapper_group_index],
+                                                sample=sample_token_groups[sample_group_index])
+            if len(partial_solution) != 0:
+                # Save a part of the wrapper.
+                solution_parts.append(partial_solution)
+                wrapper_group_index += 1
+                sample_group_index += 1
             else:
-                # Find partial match?
-                first_match = find_first_match(
-                    first_page=first_page_token_groups,
-                    second_page=second_page_token_groups,
-                    first_page_index=first_page_group_index + 1,
-                    second_page_index=second_page_group_index + 1)
-                if first_match:
-                    wrapper_part, wrapper_index, sample_index = first_match
-                    while first_page_group_index != wrapper_index:
-                        wrapper_parts.append("(")
-                        wrapper_parts.append("".join(first_page_token_groups[first_page_group_index]))
-                        wrapper_parts.append(OPTIONAL_FIELD)
-                        first_page_group_index += 1
-                    while second_page_group_index != sample_index:
-                        wrapper_parts.append("(")
-                        wrapper_parts.append("".join(second_page_token_groups[second_page_group_index]))
-                        wrapper_parts.append(OPTIONAL_FIELD)
-                        second_page_group_index += 1
-                    wrapper_parts.append(wrapper_part)
-                    first_page_group_index += 1
-                    second_page_group_index += 1
+                # Find optional field.
+                optional_field = find_optional_field(
+                    first_page=wrapper_token_groups,
+                    second_page=sample_token_groups,
+                    first_page_index=wrapper_group_index + 1,
+                    second_page_index=sample_group_index + 1)
+                if optional_field:
+                    # Tag Mismatches: Discovering Optionals -> Wrapper Generalization
+                    partial_solution, wrapper_index, sample_index = optional_field
+                    # Add optional fields to the solution.
+                    solution_parts, wrapper_group_index = wrapper_generalization(solution=solution_parts,
+                                                                                 tokens_index=wrapper_group_index,
+                                                                                 length=wrapper_index,
+                                                                                 tokens=wrapper_token_groups)
+                    solution_parts, sample_group_index = wrapper_generalization(solution=solution_parts,
+                                                                                tokens_index=sample_group_index,
+                                                                                length=sample_index,
+                                                                                tokens=sample_token_groups)
+                    solution_parts.append(partial_solution)
                 else:
-                    if len(first_page_token_groups) == len(second_page_token_groups) and len(
-                            first_page_token_groups) == 1:
+                    if len(wrapper_token_groups) == len(sample_token_groups) and len(
+                            wrapper_token_groups) == 1:
                         # Both groups contain only one element.
-                        while len(first_page_token_groups[0]) != len(second_page_token_groups[0]):
+                        while len(wrapper_token_groups[0]) != len(sample_token_groups[0]):
                             # While first items of both token groups are of a different length.
-                            if len(first_page_token_groups[0]) > len(second_page_token_groups[0]):
+                            if len(wrapper_token_groups[0]) > len(sample_token_groups[0]):
                                 # Remove the first tag
-                                tag_sublist = get_tag_sublist(tokens=first_page_token_groups[0], index=1)
-                                first_page_token_groups[0] = list(tag_sublist)
+                                tag_sublist = get_tag_sublist(tokens=wrapper_token_groups[0], index=1)
+                                wrapper_token_groups[0] = list(tag_sublist)
                             else:
                                 # Remove the first tag
-                                tag_sublist = get_tag_sublist(tokens=second_page_token_groups[0], index=1)
-                                second_page_token_groups[0] = list(tag_sublist)
-                        wrapper_part = generate_wrapper(wrapper=first_page_token_groups[0],
-                                                        sample=second_page_token_groups[0])
-                        if len(wrapper_part) == 0:
+                                tag_sublist = get_tag_sublist(tokens=sample_token_groups[0], index=1)
+                                sample_token_groups[0] = list(tag_sublist)
+                        partial_solution = generate_wrapper(wrapper=wrapper_token_groups[0],
+                                                            sample=sample_token_groups[0])
+                        if len(partial_solution) == 0:
                             break
                         else:
-                            wrapper_parts.append(wrapper_part)
+                            solution_parts.append(partial_solution)
                     else:
                         break
-                    first_page_group_index += 1
-                    second_page_group_index += 1
+                    wrapper_group_index += 1
+                    sample_group_index += 1
         wrapper_part_counter = 0
-        while wrapper_part_counter < len(wrapper_parts):
-            wrapper_index = count_occurrences(wrapper_parts=wrapper_parts, part_index=wrapper_part_counter)
+        while wrapper_part_counter < len(solution_parts):
+            wrapper_index = count_occurrences(wrapper_parts=solution_parts, part_index=wrapper_part_counter)
             if wrapper_index > 1:
                 # ITERATOR
                 solution.append("(")
-                solution.append(wrapper_parts[wrapper_part_counter])
+                solution.append(solution_parts[wrapper_part_counter])
                 solution.append(ITERATOR_FIELD)
             else:
-                solution.append(wrapper_parts[wrapper_part_counter])
+                solution.append(solution_parts[wrapper_part_counter])
             wrapper_part_counter += wrapper_index
     return solution
