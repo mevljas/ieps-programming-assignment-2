@@ -2,7 +2,7 @@ from typing import Any
 
 from bs4 import BeautifulSoup, Comment
 
-from road_runner.constants import IGNORED_TAGS, IGNORED_TOKENS, HTML_TAG_START
+from road_runner.helpers.constants import IGNORED_TAGS, IGNORED_TOKENS, HTML_TAG_START
 
 
 def create_soup(html: str) -> BeautifulSoup:
