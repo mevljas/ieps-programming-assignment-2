@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup, Comment
 from road_runner.constants import IGNORED_TAGS, IGNORED_TOKENS, HTML_TAG_START
 
 
-def create_beautiful_soup(html: str) -> BeautifulSoup:
+def create_soup(html: str) -> BeautifulSoup:
     """
     Creates a BeautifulSoup object with the provided html.
     :param html: html data to be used.
@@ -83,16 +83,16 @@ def group_elements(tokens: [str]) -> [str]:
 
 def prepare_data(first_html: str, second_html: str) -> tuple[Any, Any]:
     # Create Beautiful soup objects.
-    first_soup = create_beautiful_soup(html=first_html)
-    second_soup = create_beautiful_soup(html=second_html)
+    first_soup = create_soup(html=first_html)
+    second_soup = create_soup(html=second_html)
 
     # Clean HTML.
-    first_soup_cleaned = clean_html(soup=first_soup)
-    second_soup_cleaned = clean_html(soup=second_soup)
+    first_soup = clean_html(soup=first_soup)
+    second_soup = clean_html(soup=second_soup)
 
     # Generate tokens from HTML tags and items.
-    first_page_tokens = generate_tokens(html_element=first_soup_cleaned.body)
-    second_page_tokens = generate_tokens(html_element=second_soup_cleaned.body)
+    first_page_tokens = generate_tokens(html_element=first_soup.body)
+    second_page_tokens = generate_tokens(html_element=second_soup.body)
 
     # Clean tokens.
     first_page_tokens = clean_tokens(tokens=first_page_tokens)
