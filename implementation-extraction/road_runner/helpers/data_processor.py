@@ -82,6 +82,12 @@ def group_elements(tokens: [str]) -> [str]:
 
 
 def prepare_data(first_html: str, second_html: str) -> tuple[Any, Any]:
+    """
+    Prepare the input data for the roadrunner algorithm.
+    :param first_html: HTML of the first page.
+    :param second_html: HTML of the second page.
+    :return: first and second page tokens.
+    """
     # Create Beautiful soup objects.
     first_soup = create_soup(html=first_html)
     second_soup = create_soup(html=second_html)
