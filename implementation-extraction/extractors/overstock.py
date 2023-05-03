@@ -4,7 +4,7 @@ import json
 from bs4 import BeautifulSoup
 from lxml import etree
 from extractors.helpers.helper import read_file
-from wrapper.road_runner import road_runner
+from road_runner.road_runner import road_runner
 
 # on macOS, the following encoding is needed to read the files: "cp1252"
 jewelry_html_1 = read_file("../input-extraction/overstock.com/jewelry01.html", "cp1252")

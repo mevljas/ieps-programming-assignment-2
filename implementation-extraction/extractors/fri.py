@@ -4,7 +4,7 @@ import json
 from bs4 import BeautifulSoup
 from lxml import etree
 from extractors.helpers.helper import read_file, prettify_text
-from wrapper.road_runner import road_runner
+from road_runner.road_runner import road_runner
 
 # on macOS, the following encoding is needed to read the files: "utf-8"
 student_devrev_html = read_file("../input-extraction/fri.uni-lj.si/Kako izbrati študentsko delo in kje pričeti profesionalno kariero (in zakaj bi to lahko bil DevRev)_.html", "utf-8")

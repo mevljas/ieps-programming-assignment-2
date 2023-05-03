@@ -1,48 +1,5 @@
-from bs4 import BeautifulSoup
-
-from wrapper.constants import DATA_FIELD, OPTIONAL_FIELD, ITERATOR_FIELD
-
-
-def generate_html_tags(html_element: any) -> [str]:
-    """
-    Generate HTML tags (tokens) from BeautifulSoup HTML elements.
-    :param html_element: BeautifulSoup element
-    :return: a list of HTML tags.
-    """
-    tags = [f'<{html_element.name}>']
-    for child in html_element.contents:
-        if not isinstance(child, str):
-            tags.extend(generate_html_tags(html_element=child))
-        else:
-            tags.extend(child.split())
-    tags.append(f'</{html_element.name}>')
-    return tags
-
-
-def group_elements(tokens: [str]) -> [str]:
-    """
-    Group elements between starting and closing tags together.
-    :param tokens: a list of filtered tokens.
-    :return: a list of grouped filtered tokens.
-    """
-    final_elements = []
-    window_start = 0
-    while window_start < len(tokens):
-        if tokens[window_start][0] != "<":
-            # Token is a data element or a closing tag.
-            window_end = window_start
-            while tokens[window_end][0] != "<":
-                # While the current token is not the closing tag.
-                window_end = window_end + 1
-            # The matching tail tag was found.
-            # Concatenate all items between the opening and closing tags.
-            final_elements.append(" ".join(tokens[window_start:window_end]))
-            window_start = window_end
-        else:
-            # Append the opening tag.
-            final_elements.append(tokens[window_start])
-            window_start = window_start + 1
-    return final_elements
+from road_runner.constants import DATA_FIELD, OPTIONAL_FIELD, ITERATOR_FIELD
+from road_runner.helpers.data_processor import prepare_data
 
 
 def get_tag_sublist(tokens: [str], index: int) -> [str]:
@@ -72,7 +29,7 @@ def get_tag_sublist(tokens: [str], index: int) -> [str]:
 def count_occurrences(wrapper_parts: [str], part_index: int) -> int:
     """
     Counts occurrences of the part at the index part_index from the part_index to the end of the wrapper_parts list.
-    :param wrapper_parts: list of wrapper parts.
+    :param wrapper_parts: list of road_runner parts.
     :param part_index: index of the searched part.
     :return:
     """
@@ -92,7 +49,7 @@ def find_first_match(first_page: [str], second_page: [str], first_page_index: in
     :param second_page: second page tokens.
     :param first_page_index: index of the first page token.
     :param second_page_index: index. of the second page token.
-    :return: wrapper, first page index and second page index.
+    :return: road_runner, first page index and second page index.
     """
     while first_page_index < len(first_page):
         while second_page_index < len(second_page):
@@ -107,10 +64,10 @@ def find_first_match(first_page: [str], second_page: [str], first_page_index: in
 
 def generate_wrapper(first_page: [str], second_page: [str]) -> [str]:
     """
-    Generates the wrapper from the tokens of both pages.
+    Generates the road_runner from the tokens of both pages.
     :param first_page: a list of first page's tokens.
     :param second_page: a list of second page's tokens
-    :return: a wrapper list.
+    :return: a road_runner list.
     """
     first_page_index = 0
     second_page_index = 0
@@ -120,7 +77,7 @@ def generate_wrapper(first_page: [str], second_page: [str]) -> [str]:
         # Pages are both equally long.
         while first_page_index < len(first_page) and second_page_index < len(second_page):
             if first_page[first_page_index] == second_page[second_page_index]:
-                # Tokens are the same on both pages. Add it to the wrapper.
+                # Tokens are the same on both pages. Add it to the road_runner.
                 wrapper.append(first_page[first_page_index])
             else:
                 # Tokens differ.
@@ -155,7 +112,7 @@ def generate_wrapper(first_page: [str], second_page: [str]) -> [str]:
             wrapper_part = generate_wrapper(first_page=first_page_token_groups[first_page_group_index],
                                             second_page=second_page_token_groups[second_page_group_index])
             if len(wrapper_part) != 0:
-                # Save wrapper part.
+                # Save road_runner part.
                 wrapper_parts.append(wrapper_part)
                 first_page_group_index += 1
                 second_page_group_index += 1
@@ -218,58 +175,7 @@ def generate_wrapper(first_page: [str], second_page: [str]) -> [str]:
     return "\n".join(wrapper)
 
 
-def clean_html_soup(soup: BeautifulSoup) -> BeautifulSoup:
-    """
-    Removes all script and style tags from the html.
-    :param soup: BeautifulSoup object with html data to be cleaned.
-    :return: BeautifulSoup object with cleaned html data.
-    """
-    [x.extract() for x in soup.findAll(['script', 'style'])]
-    return soup
-
-
-def create_html_soup(html: str) -> BeautifulSoup:
-    """
-    Generate BeautifulSoup object with the provided html.
-    :param html: html data to be used.
-    :return: Generated BeautifulSoup object.
-    """
-    #TODO: use XHTML to fix broken tags.
-    soup = BeautifulSoup(html, "html.parser")
-    return soup
-
-
-def filter_tokens(tokens: [str]) -> [str]:
-    """
-    Filter a list of tokens and removes unnecessary ones.
-    :param tokens: a list of tokens.
-    :return: filtered list of tokens.
-    """
-    return list(filter(lambda token: token not in ["<br>", "</br>", "<strong>", "</strong>", "<em>"], tokens))
-
-
 def road_runner(first_html: str, second_html: str) -> None:
-    # Generate Beautiful soup objects.
-    first_soup = create_html_soup(html=first_html)
-    second_soup = create_html_soup(html=second_html)
-
-    # Remove all style and script tags from the html.
-    first_soup_cleaned = clean_html_soup(soup=first_soup)
-    second_soup_cleaned = clean_html_soup(soup=second_soup)
-
-    # Tokenize.
-    first_page_tokens = generate_html_tags(html_element=first_soup_cleaned.body)
-    second_page_tokens = generate_html_tags(html_element=second_soup_cleaned.body)
-
-    # Filter tokens.
-    first_page_tokens_filtered = filter_tokens(tokens=first_page_tokens)
-    second_page_tokens_filtered = filter_tokens(tokens=second_page_tokens)
-
-    # Concatenate multiple elements between tags.
-    first_page_tokens_concatenated = group_elements(tokens=first_page_tokens_filtered)
-    second_page_tokens_concatenated = group_elements(tokens=second_page_tokens_filtered)
-
-    # Generate wrapper.
-    wrapper = generate_wrapper(first_page=first_page_tokens_concatenated,
-                               second_page=second_page_tokens_concatenated)
+    first_page, second_page = prepare_data(first_html=first_html, second_html=second_html)
+    wrapper = generate_wrapper(first_page=first_page,second_page=second_page)
     print(wrapper)
