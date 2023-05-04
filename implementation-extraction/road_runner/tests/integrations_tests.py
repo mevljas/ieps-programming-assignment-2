@@ -16,6 +16,7 @@ class MyTestCase(unittest.TestCase):
         with contextlib.redirect_stdout(temp_stdout):
             road_runner(first_html=html_1, second_html=html_2)
         output = temp_stdout.getvalue().strip()
+        print(output)
         self.assertEqual(output, expected_result)
 
     @unittest.SkipTest
