@@ -1,5 +1,7 @@
 from html.parser import HTMLParser
 
+from road_runner.helpers.constants import TOKEN_TYPE
+
 
 class CustomHTMLParser(HTMLParser):
 
@@ -13,14 +15,14 @@ class CustomHTMLParser(HTMLParser):
         :param tag: HTML tag.
         :param attrs: tag attributes.
         """
-        self.tokens.append(["opening_tag", tag])
+        self.tokens.append([TOKEN_TYPE.OPENING_TAG, tag])
 
     def handle_endtag(self, tag: str) -> None:
         """
         Handler for HTML closing tags.
         :param tag: HTML tag.
         """
-        self.tokens.append(["closing_tag", tag])
+        self.tokens.append([TOKEN_TYPE.CLOSING_TAG, tag])
 
     def handle_data(self, data: str) -> None:
         """

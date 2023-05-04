@@ -1,4 +1,5 @@
 from road_runner.helpers.CustomHTMLParser import CustomHTMLParser
+from road_runner.helpers.constants import TOKEN_TYPE
 
 
 def tokenize(page: str, html_parser: CustomHTMLParser) -> [str]:
@@ -10,6 +11,30 @@ def tokenize(page: str, html_parser: CustomHTMLParser) -> [str]:
     """
     html_parser.feed(page)
     return html_parser.tokens
+
+
+def get_printable_wrapper(wrapper: [str], new_line: str = '\n') -> str:
+    """
+    Generate printable string presentation of the wrapper.
+    :param new_line: new line character which can be overridden to not print new lines.
+    :param wrapper: roadrunner generated wrapper.
+    :return: printable string presentation of the wrapper.
+    """
+    buffer = ""
+
+    for token in wrapper:
+        if token[0] == TOKEN_TYPE.OPENING_TAG:
+            buffer += "".join(["<", token[1], f'>{new_line}'])
+        elif token[0] == TOKEN_TYPE.CLOSING_TAG:
+            buffer += "".join(["</", token[1], f'>{new_line}'])
+        elif token[0] == TOKEN_TYPE.OPTIONAL:
+            buffer += token[1] + new_line
+        elif token[0] == TOKEN_TYPE.ITERATOR:
+            buffer += "( " + get_printable_wrapper(wrapper=token[1], new_line='') + f' )+{new_line}'
+        else:
+            buffer += token[1] + new_line
+
+    return buffer
 
 
 def prepare_data(first_html: str, second_html: str) -> ([str], [str]):
