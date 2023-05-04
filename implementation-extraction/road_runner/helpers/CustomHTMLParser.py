@@ -29,7 +29,7 @@ class CustomHTMLParser(HTMLParser):
         """
         data = data.strip()
         if data:
-            self.tokens.append(["data", data])
+            self.tokens.append(["database_field", data])
 
     def reset_parser(self) -> None:
         """

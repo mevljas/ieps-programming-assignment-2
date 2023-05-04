@@ -167,7 +167,7 @@ def road_runner(first_page: [str], second_page: [str], first_index: int, second_
 
     # Check if tokens are equal.
     if compare_tokens(page1_token, page2_token):
-        # If the tokens are equal, add token to the solution and go deeper.
+        # Tokens are equal on both pages, add the token to the wrapper and go deeper.
         wrapper.append(page1_token)
         return road_runner(first_page=first_page,
                            second_page=second_page,
@@ -177,9 +177,9 @@ def road_runner(first_page: [str], second_page: [str], first_index: int, second_
     else:
         # If the tokens aren't equal there has been a mismatch.
         # Check whether both tokens are database fields.
-        if page1_token[0] == "data" and page2_token[0] == "data":
+        if page1_token[0] == "database_field" and page2_token[0] == "database_field":
             # If both tokens are database fields it's a string mismatch.
-            wrapper.append(["data", "#PCDATA"])
+            wrapper.append(["database_field", "#PCDATA"])
             return road_runner(first_page, second_page, first_index + 1, second_index + 1, wrapper)
         else:
             # If at least one of the tokens isn't a database field, it's a tag mismatch.
