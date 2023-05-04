@@ -1,27 +1,27 @@
 from road_runner.helpers.constants import STRING_MISMATCH_FIELD, OPTIONAL_FIELD, ITERATOR_FIELD, HTML_TAG_START
 
 
-def remove_token_parents(tokens: [str], start_index: int) -> [str]:
+def remove_token_parents(tokens: [str], position: int) -> [str]:
     """
     Gets a subgroup of tokens from the opening tag at index to the closing tag.
     :param tokens: list of tokens.
-    :param start_index: index of the removing tag.
+    :param position: index of the removing tag.
     :return: a subgroup of tokens from the opening tag at index to the closing tag.
     """
-    start_index = start_index
+    start_position = position
     required_tail_tags = 0
     tokens_subset = []
-    while start_index < len(tokens):
-        if required_tail_tags == 0 and start_index != start_index:
+    while position < len(tokens):
+        if required_tail_tags == 0 and position != start_position:
             break
-        tokens_subset.append(tokens[start_index])
-        current_tag = tokens[start_index]
+        tokens_subset.append(tokens[position])
+        current_tag = tokens[position]
         if current_tag[0] == "<":
             if current_tag[1] != "/":
                 required_tail_tags += 1
             else:
                 required_tail_tags -= 1
-        start_index += 1
+        position += 1
     return tokens_subset
 
 
@@ -116,11 +116,11 @@ def generate_wrapper(wrapper: [str], sample: [str]) -> [str]:
         sample_index = 1
         # Group together tokens inside top level tags.
         while wrapper_index < len(wrapper) - 1:
-            first_page_tag_group = remove_token_parents(tokens=wrapper, start_index=wrapper_index)
+            first_page_tag_group = remove_token_parents(tokens=wrapper, position=wrapper_index)
             wrapper_index += len(first_page_tag_group)
             wrapper_token_groups.append(first_page_tag_group)
         while sample_index < len(sample) - 1:
-            second_page_tag_group = remove_token_parents(tokens=sample, start_index=sample_index)
+            second_page_tag_group = remove_token_parents(tokens=sample, position=sample_index)
             sample_index += len(second_page_tag_group)
             sample_token_groups.append(second_page_tag_group)
         wrapper_group_index = 0
@@ -158,7 +158,6 @@ def generate_wrapper(wrapper: [str], sample: [str]) -> [str]:
                         tokens=sample_token_groups)
                     solution_parts.append(partial_solution)
                 else:
-                    #  Square Location by Terminal–Tag Search
                     if len(wrapper_token_groups) == len(sample_token_groups) and len(
                             wrapper_token_groups) == 1:
                         # Both groups contain only one token group.
@@ -167,10 +166,10 @@ def generate_wrapper(wrapper: [str], sample: [str]) -> [str]:
                             # Remove the top level token (top level opening and closing tag) of the longer group.
                             if len(wrapper_token_groups[0]) > len(sample_token_groups[0]):
                                 wrapper_token_groups[0] = remove_token_parents(tokens=wrapper_token_groups[0],
-                                                                               start_index=1)
+                                                                               position=1)
                             else:
                                 sample_token_groups[0] = remove_token_parents(tokens=sample_token_groups[0],
-                                                                              start_index=1)
+                                                                              position=1)
                         partial_solution = generate_wrapper(wrapper=wrapper_token_groups[0],
                                                             sample=sample_token_groups[0])
                         if len(partial_solution) == 0:
