@@ -74,49 +74,36 @@ def compare_tokens(first: [str], second: [str]) -> bool:
     return False
 
 
-def find_iterator_end(tokens, start_indx):
-    end_tag_found = False
-    i = start_indx
-
+def find_iterator_end(tokens: [str], start_position: int) -> int | None:
+    """
+    Find the position of the previous terminal tag with the same value.
+    :param tokens: a list of page tokens.
+    :param start_position: first possible tag position.
+    :return: tag position if found, None oterhwise.
+    """
+    i = start_position
     while i < len(tokens):
-
-        if tokens[i][0] == "tail_tag" and tokens[i][1] == tokens[start_indx][1]:
-            end_tag_found = True
-            break
-
+        if tokens[i][0] == "tail_tag" and tokens[i][1] == tokens[start_position][1]:
+            return i
         i += 1
 
-    return end_tag_found, i
+    return None
 
 
-def find_prev_iterator_start(tokens, start_indx):
-    start_tag_found = False
-    i = start_indx
-
+def find_iterator_start(tokens: [str], start_position: int) -> int | None:
+    """
+    Find the position of the previous start tag with the same value.
+    :param tokens: a list of page tokens.
+    :param start_position: first possible tag position.
+    :return: tag position if found, None oterhwise.
+    """
+    i = start_position
     while i > 0:
-
-        if tokens[i][0] == "head_tag" and tokens[i][1] == tokens[start_indx][1]:
-            start_tag_found = True
-            break
-
+        if tokens[i][0] == "head_tag" and tokens[i][1] == tokens[start_position][1]:
+            return i
         i -= 1
 
-    return start_tag_found, i
-
-
-def find_end_of_optional(tokens, start_indx, tag):
-    i = start_indx
-    found = False
-
-    while i < len(tokens) - 1:
-
-        if tokens[i][0] == "tail_tag" and tokens[i][1] == tag:
-            found = True
-            break
-
-        i += 1
-
-    return found, i
+    return None
 
 
 def clean_wrapper_iterators(wrapper, iterator_tag, internal_wrapper):
@@ -199,76 +186,63 @@ def roadrunner(first_page: [str], second_page: [str], first_index: int, second_i
             return roadrunner(first_page, second_page, first_index + 1, second_index + 1, wrapper)
         else:
             # If at least one of the tokens isn't a database field, it's a tag mismatch.
-            # check for iterator
+            # check for iterators
+            # square location by terminal–tag search
 
             # Get previous tokens.
             previous_page1_token = first_page[first_index - 1]
             previous_page2_token = second_page[second_index - 1]
+            iterator_found = False
 
-            if previous_page1_token[0] == "tail_tag" \
-                    and page1_token[0] == "head_tag" \
+            # Check if the previous token on the first page is a terminal tag and
+            # matches the current token on the second page.
+            if previous_page1_token[0] == "tail_tag" and page1_token[0] == "head_tag" \
                     and previous_page1_token[1] == page1_token[1]:
-                # iterator discovered on wrapper side
-                # confirm existance of equal terminal tag
-                iter_found, iter_end_indx = find_iterator_end(first_page, first_index)
+                # iterator discovered on first page
+                # confirm existence of equal terminal tag
+                # Square matching
+                previous_terminal_position = find_iterator_end(tokens=first_page, start_position=first_index)
 
-                if iter_found:
+                if previous_terminal_position is not None:
+                    previous_start_position = find_iterator_start(tokens=first_page,
+                                                                  start_position=first_index - 1)
 
-                    prev_iter_found, prev_iter_start_indx = find_prev_iterator_start(first_page, first_index - 1)
-
-                    if prev_iter_found:
-
-                        prev_square = first_page[prev_iter_start_indx:first_index]
-                        square = first_page[first_index:iter_end_indx + 1]
-
+                    if previous_start_position is not None:
+                        prev_square = first_page[previous_start_position:first_index]
+                        square = first_page[first_index:previous_terminal_position + 1]
                         internal_wrapper = roadrunner(prev_square, square, 0, 0, [])
 
                         if internal_wrapper is not None:
                             new_wrapper = clean_wrapper_iterators(wrapper, page1_token[1], internal_wrapper)
-                            return roadrunner(first_page, second_page, first_index, iter_end_indx + 1, new_wrapper)
+                            iterator_found = True
+                            return roadrunner(first_page, second_page, first_index, previous_terminal_position + 1,
+                                              new_wrapper)
 
-                        else:
-                            iterative = False
-                    else:
-                        iterative = False
+            # Check if the previous token on the second page is a terminal tag and
+            # matches the current token on the first page.
+            elif previous_page2_token[0] == "tail_tag" and page2_token[0] == "head_tag" \
+                    and previous_page2_token[1] == page2_token[1]:
+                # iterator discovered on second page
+                # confirm existence of equal terminal tag
+                previous_terminal_position = find_iterator_end(tokens=second_page, start_position=second_index)
 
-                else:
-                    iterative = False
+                if previous_terminal_position is not None:
+                    previous_start_position = find_iterator_start(tokens=second_page,
+                                                                  start_position=second_index - 1)
 
-            # iterator discovered on sample side
-            elif previous_page2_token[0] == "tail_tag" and page2_token[0] == "head_tag" and previous_page2_token[1] == \
-                    page2_token[1]:
-                # confirm existance of equal terminal tag
-                iter_found, iter_end_indx = find_iterator_end(second_page, second_index)
-
-                if iter_found:
-
-                    prev_iter_found, prev_iter_start_indx = find_prev_iterator_start(second_page, second_index - 1)
-
-                    if prev_iter_found:
-
-                        prev_square = second_page[prev_iter_start_indx:second_index]
-                        square = second_page[second_index:iter_end_indx + 1]
-
+                    if previous_start_position is not None:
+                        prev_square = second_page[previous_start_position:second_index]
+                        square = second_page[second_index:previous_terminal_position + 1]
                         internal_wrapper = roadrunner(prev_square, square, 0, 0, [])
 
                         if internal_wrapper is not None:
                             wrapper = clean_wrapper_iterators(wrapper, page2_token[1], internal_wrapper)
-                            return roadrunner(first_page, second_page, first_index, iter_end_indx + 1, wrapper)
-
-                        else:
-                            iterative = False
-
-                    else:
-                        iterative = False
-
-                else:
-                    iterative = False
-            else:
-                iterative = False
+                            iterator_found = True
+                            return roadrunner(first_page, second_page, first_index, previous_terminal_position + 1,
+                                              wrapper)
 
             # Check for optionals.
-            if not iterative:
+            if not iterator_found:
                 # Optional pattern location by cross–search.
 
                 # Check whether the first page contains an optional pattern.
