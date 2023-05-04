@@ -97,8 +97,8 @@ def prepare_data(first_html: str, second_html: str) -> tuple[Any, Any]:
     second_soup = clean_html(soup=second_soup)
 
     # Generate tokens from HTML tags and items.
-    first_page_tokens = generate_tokens(html_element=first_soup.body)
-    second_page_tokens = generate_tokens(html_element=second_soup.body)
+    first_page_tokens = generate_tokens(html_element=first_soup)
+    second_page_tokens = generate_tokens(html_element=second_soup)
 
     # Clean tokens.
     first_page_tokens = clean_tokens(tokens=first_page_tokens)

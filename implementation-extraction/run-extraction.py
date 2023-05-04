@@ -3,6 +3,7 @@ import sys
 from extractors import overstock
 from extractors import rtvslo
 from extractors import fri
+from extractors.test import run_road_runner
 
 
 def main() -> None:
@@ -20,9 +21,10 @@ def main() -> None:
             rtvslo.run_xpath()
             fri.run_xpath()
         case 'C':
-            overstock.run_road_runner()
-            rtvslo.run_road_runner()
-            fri.run_road_runner()
+            # overstock.run_road_runner()
+            # rtvslo.run_road_runner()
+            # fri.run_road_runner()
+            run_road_runner()
         case _:
             print("Unsupported algorithm type provided.", file=sys.stderr)
 
