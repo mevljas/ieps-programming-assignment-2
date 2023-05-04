@@ -1,35 +1,5 @@
-from html.parser import HTMLParser
-
-
-class RunnerHTMLParser(HTMLParser):
-
-    def __init__(self):
-        HTMLParser.__init__(self)
-        self.page_tokens = []
-
-    def handle_starttag(self, tag, attrs):
-        self.page_tokens.append(["initial_tag", tag])
-        # print("< " + tag + " >")
-
-    def handle_endtag(self, tag):
-        self.page_tokens.append(["terminal_tag", tag])
-        # print("</" + tag + " >")
-
-    def handle_data(self, data):
-        data = data.strip().lower()
-        if data:
-            self.page_tokens.append(["data", data])
-        # print(data)
-
-    def clear_page_tokens(self):
-        self.page_tokens = []
-
-
-def read_html_code(path_html_file):
-    with open(path_html_file) as html_doc:
-        html_page = html_doc.read()
-
-    return html_page
+from road_runner.helpers.CustomHTMLParser import CustomHTMLParser
+from road_runner.helpers.data_processor import parse_html
 
 
 def get_iterator_string(iterator):
@@ -280,33 +250,13 @@ def roadrunner(wrapper_tokens, sample_tokens, indx_w, indx_s, wrapper):
                     return None
 
 
-def main(wrapper_page: str, sample_page: str):
-    """ INITIALIZE PARSERS """
-    r_parser = RunnerHTMLParser()
-
-    """ TOKENIZE HTML PAGES """
-    r_parser.feed(wrapper_page)
-    wrapper_tokens = r_parser.page_tokens
-    # for t in wrapper_tokens:
-    #     print(t)
-    r_parser.clear_page_tokens()
-
-    r_parser.feed(sample_page)
-    sample_tokens = r_parser.page_tokens
-    # for t in sample_tokens:
-    #     print(t)
-
-    """ RUN ROADRUNNER """
-    wrapper = roadrunner(wrapper_tokens, sample_tokens, 0, 0, [])
-
-    ufre = write_final_wrapper_as_ufre(wrapper)
-    print(ufre)
-
-
 def road_runner(first_html: str, second_html: str) -> None:
     """
     Runs the roadrunner algorithm on the provided pages.
     :param first_html: HTML of the first page.
     :param second_html: HTML of the second page.
     """
-    main(wrapper_page=first_html, sample_page=second_html)
+    first_page, second_page = parse_html(first_html=first_html, second_html=second_html)
+    wrapper = roadrunner(first_page, second_page, 0, 0, [])
+    ufre = write_final_wrapper_as_ufre(wrapper)
+    print(ufre)

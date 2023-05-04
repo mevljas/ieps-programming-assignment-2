@@ -1,4 +1,4 @@
-from road_runner.helpers.data_processor import prepare_data
+from road_runner.helpers.data_processor import parse_html
 from road_runner.helpers.util import flatten
 from road_runner.wrapper_generator import generate_wrapper
 
@@ -9,6 +9,6 @@ def road_runner(first_html: str, second_html: str) -> None:
     :param first_html: HTML of the first page.
     :param second_html: HTML of the second page.
     """
-    first_page, second_page = prepare_data(first_html=first_html, second_html=second_html)
+    first_page, second_page = parse_html(first_html=first_html, second_html=second_html)
     wrapper = generate_wrapper(wrapper=first_page, sample=second_page)
     print("\n".join(flatten(wrapper)))

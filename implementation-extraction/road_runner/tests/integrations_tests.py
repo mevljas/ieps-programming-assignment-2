@@ -4,7 +4,7 @@ import unittest
 from io import StringIO
 
 from extractors.helpers.helper import read_file
-from road_runner.road_runner_2 import main, road_runner
+from road_runner.road_runner_2 import road_runner
 
 
 class MyTestCase(unittest.TestCase):

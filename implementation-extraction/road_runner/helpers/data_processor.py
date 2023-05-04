@@ -2,6 +2,7 @@ from typing import Any
 
 from bs4 import BeautifulSoup, Comment
 
+from road_runner.helpers.CustomHTMLParser import CustomHTMLParser
 from road_runner.helpers.constants import IGNORED_TAGS, IGNORED_TOKENS, HTML_TAG_START
 
 
@@ -107,5 +108,35 @@ def prepare_data(first_html: str, second_html: str) -> tuple[Any, Any]:
     # Group elements between the opening and closing HTML tags.
     first_page_tokens = group_elements(tokens=first_page_tokens)
     second_page_tokens = group_elements(tokens=second_page_tokens)
+
+    return first_page_tokens, second_page_tokens
+
+
+def tokenize(page: str, html_parser: CustomHTMLParser) -> [str]:
+    """
+    Generate tokens from the HTML page using html_parser.
+    :param html_parser: CustomHTMLParser object.
+    :param page: HTML page string.
+    :return: a list of tokens.
+    """
+    html_parser.feed(page)
+    return html_parser.page_tokens
+
+
+def parse_html(first_html: str, second_html: str) -> tuple[Any, Any]:
+    """
+    Prepare the input data for the roadrunner algorithm.
+    :param first_html: HTML of the first page.
+    :param second_html: HTML of the second page.
+    :return: first and second page tokens.
+    """
+
+    # Create HTML parser.
+    html_parser = CustomHTMLParser()
+
+    # Generate tokens from HTML.
+    first_page_tokens = tokenize(page=first_html, html_parser=html_parser)
+    html_parser.clear_page_tokens()
+    second_page_tokens = tokenize(page=second_html, html_parser=html_parser)
 
     return first_page_tokens, second_page_tokens
