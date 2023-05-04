@@ -1,4 +1,5 @@
 from road_runner.helpers.CustomHTMLParser import CustomHTMLParser
+from road_runner.helpers.Token import Token
 from road_runner.helpers.constants import TOKEN_TYPE
 
 
@@ -23,21 +24,21 @@ def get_printable_wrapper(wrapper: [str], new_line: str = '\n') -> str:
     buffer = ""
 
     for token in wrapper:
-        if token[0] == TOKEN_TYPE.OPENING_TAG:
-            buffer += "".join(["<", token[1], f'>{new_line}'])
-        elif token[0] == TOKEN_TYPE.CLOSING_TAG:
-            buffer += "".join(["</", token[1], f'>{new_line}'])
-        elif token[0] == TOKEN_TYPE.OPTIONAL:
-            buffer += token[1] + new_line
-        elif token[0] == TOKEN_TYPE.ITERATOR:
-            buffer += "( " + get_printable_wrapper(wrapper=token[1], new_line='') + f' )+{new_line}'
+        if token.token_type == TOKEN_TYPE.OPENING_TAG:
+            buffer += "".join(["<", token.value, f'>{new_line}'])
+        elif token.token_type == TOKEN_TYPE.CLOSING_TAG:
+            buffer += "".join(["</", token.value, f'>{new_line}'])
+        elif token.token_type == TOKEN_TYPE.OPTIONAL:
+            buffer += token.value + new_line
+        elif token.token_type == TOKEN_TYPE.ITERATOR:
+            buffer += "( " + get_printable_wrapper(wrapper=token.value, new_line='') + f' )+{new_line}'
         else:
-            buffer += token[1] + new_line
+            buffer += token.value + new_line
 
     return buffer
 
 
-def prepare_data(first_html: str, second_html: str) -> ([str], [str]):
+def prepare_data(first_html: str, second_html: str) -> ([Token], [Token]):
     """
     Prepares the input data for the roadrunner algorithm.
     :param first_html: HTML of the first page.
