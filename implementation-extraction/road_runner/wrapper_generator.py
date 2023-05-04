@@ -35,9 +35,7 @@ def wrapper_generalization(solution: [str], tokens_index: int, length: int, toke
     :return: generalized solution and latest tokens index.
     """
     while tokens_index != length:
-        solution.append("(")
-        solution.append("".join(tokens[tokens_index]))
-        solution.append(OPTIONAL_FIELD)
+        solution.extend(["(", "".join(tokens[tokens_index]), OPTIONAL_FIELD])
         tokens_index += 1
     return solution, tokens_index + 1
 
