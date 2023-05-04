@@ -183,9 +183,7 @@ def generate_wrapper(wrapper: [str], sample: [str]) -> [str]:
             wrapper_index = count_occurrences(wrapper_parts=solution_parts, part_index=wrapper_part_counter)
             if wrapper_index > 1:
                 # ITERATOR
-                solution.append("(")
-                solution.append(solution_parts[wrapper_part_counter])
-                solution.append(ITERATOR_FIELD)
+                solution.extend(["(", solution_parts[wrapper_part_counter], ITERATOR_FIELD])
             else:
                 solution.append(solution_parts[wrapper_part_counter])
             wrapper_part_counter += wrapper_index
