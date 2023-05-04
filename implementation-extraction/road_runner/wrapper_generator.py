@@ -158,6 +158,7 @@ def generate_wrapper(wrapper: [str], sample: [str]) -> [str]:
                         tokens=sample_token_groups)
                     solution_parts.append(partial_solution)
                 else:
+                    #  Square Location by Terminal–Tag Search
                     if len(wrapper_token_groups) == len(sample_token_groups) and len(
                             wrapper_token_groups) == 1:
                         # Both groups contain only one token group.
