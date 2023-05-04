@@ -1,7 +1,7 @@
 from html.parser import HTMLParser
 
 from road_runner.helpers.Token import Token
-from road_runner.helpers.constants import TOKEN_TYPE
+from road_runner.helpers.constants import TOKEN_TYPE, IGNORED_TAGS
 
 
 class CustomHTMLParser(HTMLParser):

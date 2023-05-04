@@ -14,7 +14,7 @@ def tokenize(page: str, html_parser: CustomHTMLParser) -> [str]:
     return html_parser.tokens
 
 
-def get_printable_wrapper(wrapper: [str], new_line: str = '\n') -> str:
+def get_printable_wrapper(wrapper: [Token], new_line: str = '\n') -> str:
     """
     Generate printable string presentation of the wrapper.
     :param new_line: new line character which can be overridden to not print new lines.
@@ -25,13 +25,13 @@ def get_printable_wrapper(wrapper: [str], new_line: str = '\n') -> str:
 
     for token in wrapper:
         if token.token_type == TOKEN_TYPE.OPENING_TAG:
-            buffer += "".join(["<", token.value, f'>{new_line}'])
+            buffer += f"<{token.value}>{new_line}"
         elif token.token_type == TOKEN_TYPE.CLOSING_TAG:
-            buffer += "".join(["</", token.value, f'>{new_line}'])
+            buffer += f"</{token.value}>{new_line}"
         elif token.token_type == TOKEN_TYPE.OPTIONAL:
-            buffer += token.value + new_line
+            buffer += f"({token.value})?{new_line}"
         elif token.token_type == TOKEN_TYPE.ITERATOR:
-            buffer += "( " + get_printable_wrapper(wrapper=token.value, new_line='') + f' )+{new_line}'
+            buffer += f"({get_printable_wrapper(wrapper=token.value, new_line='')})+{new_line}"
         else:
             buffer += token.value + new_line
 

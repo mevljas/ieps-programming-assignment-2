@@ -4,7 +4,7 @@ import unittest
 from io import StringIO
 
 from extractors.helpers.helper import read_file
-from road_runner.road_runner import run
+from road_runner.road_runner import start_running
 
 
 class MyTestCase(unittest.TestCase):
@@ -14,19 +14,18 @@ class MyTestCase(unittest.TestCase):
         expected_result = read_file("../../../input-extraction/tests/simple_case/result.html", "utf-8")
         temp_stdout = StringIO()
         with contextlib.redirect_stdout(temp_stdout):
-            run(first_html=html_1, second_html=html_2)
+            start_running(first_html=html_1, second_html=html_2)
         output = temp_stdout.getvalue().strip()
         print(output)
         self.assertEqual(output, expected_result)
 
-    @unittest.SkipTest
     def test_complex_case(self):
         html_1 = read_file("../../../input-extraction/tests/complex_case/page1.html", "utf-8")
         html_2 = read_file("../../../input-extraction/tests/complex_case/page2.html", "utf-8")
         expected_result = read_file("../../../input-extraction/tests/complex_case/result.html", "utf-8")
         temp_stdout = StringIO()
         with contextlib.redirect_stdout(temp_stdout):
-            run(first_html=html_1, second_html=html_2)
+            start_running(first_html=html_1, second_html=html_2)
         output = temp_stdout.getvalue().strip()
         print(output)
         self.assertEqual(output, expected_result)

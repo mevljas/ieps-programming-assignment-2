@@ -21,9 +21,9 @@ def compare_tokens(first: Token, second: Token) -> bool:
     return False
 
 
-def find_iterator_end(tokens: [Token], start_position: int) -> int | None:
+def find_new_iterator_end(tokens: [Token], start_position: int) -> int | None:
     """
-    Find the position of the previous terminal tag with the same value.
+    Find the position of the new iterators terminal tag with the same value.
     :param tokens: a list of page tokens.
     :param start_position: first possible tag position.
     :return: tag position if found, None otherwise.
@@ -39,7 +39,7 @@ def find_iterator_end(tokens: [Token], start_position: int) -> int | None:
 
 def find_iterator_start(tokens: [Token], start_position: int) -> int | None:
     """
-    Find the position of the previous start tag with the same value.
+    Find the position of the previous iterator start tag with the same value.
     :param tokens: a list of page tokens.
     :param start_position: first possible tag position.
     :return: tag position if found, None otherwise.
@@ -66,7 +66,6 @@ def wrapper_generalization_iterator(wrapper: [Token], tag_mismatch: str, interna
 
     while i > 0:
         # Skip optional tags.
-        # TODO: Is this necessary?
         while i > 0 and wrapper[i].token_type == TOKEN_TYPE.OPTIONAL:
             i -= 1
 
@@ -102,7 +101,7 @@ def wrapper_generalization_optional_field(wrapper: [Token], token: Token) -> [To
     :param token: page token.
     :return: generalized wrapper.
     """
-    wrapper.append(Token(token_type=TOKEN_TYPE.OPTIONAL, value=" ".join(["( <", token.value, "/> )?"])))
+    wrapper.append(Token(token_type=TOKEN_TYPE.OPTIONAL, value=" ".join(["<", token.value, "/>"])))
     return wrapper
 
 
@@ -121,18 +120,18 @@ def find_iterator(previous_token: Token, page_token: Token, page: [Token], index
         # possible iterator discovered on the page.
         # Verify with square matching.
         # confirm existence of equal terminal tag.
-        previous_terminal_position = find_iterator_end(tokens=page, start_position=index)
+        new_iterator_end = find_new_iterator_end(tokens=page, start_position=index)
 
-        if previous_terminal_position is None:
+        if new_iterator_end is None:
             return None
-        previous_start_position = find_iterator_start(tokens=page,
+        previous_iterator_start = find_iterator_start(tokens=page,
                                                       start_position=index - 1)
 
-        if previous_start_position is None:
+        if previous_iterator_start is None:
             return None
-        prev_square = page[previous_start_position:index]
-        square = page[index:previous_terminal_position + 1]
-        internal_wrapper = road_runner(first_page=prev_square,
+        previous_square = page[previous_iterator_start:index]
+        square = page[index:new_iterator_end + 1]
+        internal_wrapper = road_runner(first_page=previous_square,
                                        second_page=square,
                                        first_index=0,
                                        second_index=0,
@@ -141,7 +140,7 @@ def find_iterator(previous_token: Token, page_token: Token, page: [Token], index
         if internal_wrapper is not None:
             return wrapper_generalization_iterator(wrapper=wrapper,
                                                    tag_mismatch=page_token.value,
-                                                   internal_wrapper=internal_wrapper), previous_terminal_position
+                                                   internal_wrapper=internal_wrapper), new_iterator_end
     return None
 
 
@@ -223,23 +222,25 @@ def road_runner(first_page: [Token], second_page: [Token], first_index: int, sec
         # Iterator wasn't found, check for optionals.
         # Optional pattern location by cross–search.
 
-        # Check whether the first page contains an optional pattern.
-        if compare_tokens(first_page[first_index + 1], page2_token):
-            # Skipping an optional pattern worked, generalize wrapper and proceed.
-            wrapper = wrapper_generalization_optional_field(wrapper=wrapper, token=page1_token)
-            return road_runner(first_page, second_page, first_index + 1, second_index, wrapper)
+        # Try longer optional searches.
+        for i in range(1, max(len(first_page) - first_index, len(second_page) - second_index)):
+            # Check whether the first page contains an optional pattern.
+            if first_index + i < len(first_page) and compare_tokens(first_page[first_index + i], page2_token):
+                # Skipping an optional pattern worked, generalize wrapper and proceed.
+                wrapper = wrapper_generalization_optional_field(wrapper=wrapper, token=page1_token)
+                return road_runner(first_page, second_page, first_index + 1, second_index, wrapper)
 
-        # Check whether the second page contains an optional pattern.
-        elif compare_tokens(page1_token, second_page[second_index + 1]):
-            # Skipping an optional pattern worked, generalize wrapper and proceed.
-            wrapper = wrapper_generalization_optional_field(wrapper=wrapper, token=page2_token)
-            return road_runner(first_page, second_page, first_index, second_index + 1, wrapper)
+            # Check whether the second page contains an optional pattern.
+            elif second_index + i < len(second_page) and compare_tokens(page1_token, second_page[second_index + i]):
+                # Skipping an optional pattern worked, generalize wrapper and proceed.
+                wrapper = wrapper_generalization_optional_field(wrapper=wrapper, token=page2_token)
+                return road_runner(first_page, second_page, first_index, second_index + 1, wrapper)
         else:
             print("Error skipping optional pattern.", file=sys.stderr)
             return None
 
 
-def run(first_html: str, second_html: str) -> None:
+def start_running(first_html: str, second_html: str) -> None:
     """
     Runs the roadrunner algorithm on the provided pages.
     :param first_html: HTML of the first page.
