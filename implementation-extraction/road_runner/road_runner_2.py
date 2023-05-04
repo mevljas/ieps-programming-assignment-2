@@ -6,9 +6,9 @@ def get_iterator_string(iterator):
     str_iter = "( "
 
     for token in iterator:
-        if token[0] == "initial_tag":
+        if token[0] == "head_tag":
             str_iter += "".join(["<", token[1], ">"])
-        elif token[0] == "terminal_tag":
+        elif token[0] == "tail_tag":
             str_iter += "".join(["</", token[1], ">"])
         elif token[0] == "optional":
             str_iter += token[1] + ""
@@ -24,9 +24,9 @@ def get_optional_string(optional):
     str_opt = "( "
 
     for token in optional:
-        if token[0] == "initial_tag":
+        if token[0] == "head_tag":
             str_opt += "".join(["<", token[1], ">"])
-        elif token[0] == "terminal_tag":
+        elif token[0] == "tail_tag":
             str_opt += "".join(["</", token[1], ">"])
         elif token[0] == "optional":
             str_opt += token[1] + ""
@@ -42,9 +42,9 @@ def write_final_wrapper_as_ufre(wrapper):
     ufre = ""
 
     for token in wrapper:
-        if token[0] == "initial_tag":
+        if token[0] == "head_tag":
             ufre += "".join(["<", token[1], ">\n"])
-        elif token[0] == "terminal_tag":
+        elif token[0] == "tail_tag":
             ufre += "".join(["</", token[1], ">\n"])
         elif token[0] == "optional":
             ufre += token[1] + "\n"
@@ -72,7 +72,7 @@ def find_iterator_end(tokens, start_indx):
 
     while i < len(tokens):
 
-        if tokens[i][0] == "terminal_tag" and tokens[i][1] == tokens[start_indx][1]:
+        if tokens[i][0] == "tail_tag" and tokens[i][1] == tokens[start_indx][1]:
             end_tag_found = True
             break
 
@@ -87,7 +87,7 @@ def find_prev_iterator_start(tokens, start_indx):
 
     while i > 0:
 
-        if tokens[i][0] == "initial_tag" and tokens[i][1] == tokens[start_indx][1]:
+        if tokens[i][0] == "head_tag" and tokens[i][1] == tokens[start_indx][1]:
             start_tag_found = True
             break
 
@@ -102,7 +102,7 @@ def find_end_of_optional(tokens, start_indx, tag):
 
     while i < len(tokens) - 1:
 
-        if tokens[i][0] == "terminal_tag" and tokens[i][1] == tag:
+        if tokens[i][0] == "tail_tag" and tokens[i][1] == tag:
             found = True
             break
 
@@ -121,11 +121,11 @@ def clean_wrapper_iterators(wrapper, iterator_tag, internal_wrapper):
         while i > 0 and wrapper[i][0] == "optional":
             i -= 1
 
-        if wrapper[i][0] == "terminal_tag" and wrapper[i][1] == iterator_tag:
+        if wrapper[i][0] == "tail_tag" and wrapper[i][1] == iterator_tag:
 
             while i > 0:
 
-                if wrapper[i][0] == "initial_tag" and wrapper[i][1] == iterator_tag:
+                if wrapper[i][0] == "head_tag" and wrapper[i][1] == iterator_tag:
                     new_end = i
                     i -= 1
                     break
@@ -144,51 +144,51 @@ def clean_wrapper_iterators(wrapper, iterator_tag, internal_wrapper):
     return wrapper
 
 
-def roadrunner(wrapper_tokens, sample_tokens, indx_w, indx_s, wrapper):
-    if indx_w == len(wrapper_tokens) and indx_s == len(sample_tokens):
+def roadrunner(wrapper: [str], sample: [str], wrapper_index, sample_index, solution):
+    if wrapper_index == len(wrapper) and sample_index == len(sample):
         # successful matching
-        return wrapper
+        return solution
 
-    wrap_token = wrapper_tokens[indx_w]
-    smpl_token = sample_tokens[indx_s]
+    wrap_token = wrapper[wrapper_index]
+    smpl_token = sample[sample_index]
 
     # IF MATCHING TOKENS, SIMPLY APPEND TO THE WRAPPER
     if matching_tokens(wrap_token, smpl_token):
-        wrapper.append(wrap_token)
-        return roadrunner(wrapper_tokens, sample_tokens, indx_w + 1, indx_s + 1, wrapper)
+        solution.append(wrap_token)
+        return roadrunner(wrapper, sample, wrapper_index + 1, sample_index + 1, solution)
     else:
         # handle string mismatch:
         if wrap_token[0] == "data" and smpl_token[0] == "data":
-            wrapper.append(["data", "#PCDATA"])
-            return roadrunner(wrapper_tokens, sample_tokens, indx_w + 1, indx_s + 1, wrapper)
+            solution.append(["data", "#PCDATA"])
+            return roadrunner(wrapper, sample, wrapper_index + 1, sample_index + 1, solution)
         # tag mismatch - either an optional or an iterative
         else:
             iterative = True
 
             # check for iterative
-            prev_wrap_token = wrapper_tokens[indx_w - 1]
-            prev_smpl_token = sample_tokens[indx_s - 1]
+            prev_wrap_token = wrapper[wrapper_index - 1]
+            prev_smpl_token = sample[sample_index - 1]
 
             # iterator discovered on wrapper side
-            if prev_wrap_token[0] == "terminal_tag" and wrap_token[0] == "initial_tag" and prev_wrap_token[1] == \
+            if prev_wrap_token[0] == "tail_tag" and wrap_token[0] == "head_tag" and prev_wrap_token[1] == \
                     wrap_token[1]:
                 # confirm existance of equal terminal tag
-                iter_found, iter_end_indx = find_iterator_end(wrapper_tokens, indx_w)
+                iter_found, iter_end_indx = find_iterator_end(wrapper, wrapper_index)
 
                 if iter_found:
 
-                    prev_iter_found, prev_iter_start_indx = find_prev_iterator_start(wrapper_tokens, indx_w - 1)
+                    prev_iter_found, prev_iter_start_indx = find_prev_iterator_start(wrapper, wrapper_index - 1)
 
                     if prev_iter_found:
 
-                        prev_square = wrapper_tokens[prev_iter_start_indx:indx_w]
-                        square = wrapper_tokens[indx_w:iter_end_indx + 1]
+                        prev_square = wrapper[prev_iter_start_indx:wrapper_index]
+                        square = wrapper[wrapper_index:iter_end_indx + 1]
 
                         internal_wrapper = roadrunner(prev_square, square, 0, 0, [])
 
                         if internal_wrapper is not None:
-                            new_wrapper = clean_wrapper_iterators(wrapper, wrap_token[1], internal_wrapper)
-                            return roadrunner(wrapper_tokens, sample_tokens, indx_w, iter_end_indx + 1, new_wrapper)
+                            new_wrapper = clean_wrapper_iterators(solution, wrap_token[1], internal_wrapper)
+                            return roadrunner(wrapper, sample, wrapper_index, iter_end_indx + 1, new_wrapper)
 
                         else:
                             iterative = False
@@ -199,25 +199,25 @@ def roadrunner(wrapper_tokens, sample_tokens, indx_w, indx_s, wrapper):
                     iterative = False
 
             # iterator discovered on sample side
-            elif prev_smpl_token[0] == "terminal_tag" and smpl_token[0] == "initial_tag" and prev_smpl_token[1] == \
+            elif prev_smpl_token[0] == "tail_tag" and smpl_token[0] == "head_tag" and prev_smpl_token[1] == \
                     smpl_token[1]:
                 # confirm existance of equal terminal tag
-                iter_found, iter_end_indx = find_iterator_end(sample_tokens, indx_s)
+                iter_found, iter_end_indx = find_iterator_end(sample, sample_index)
 
                 if iter_found:
 
-                    prev_iter_found, prev_iter_start_indx = find_prev_iterator_start(sample_tokens, indx_s - 1)
+                    prev_iter_found, prev_iter_start_indx = find_prev_iterator_start(sample, sample_index - 1)
 
                     if prev_iter_found:
 
-                        prev_square = sample_tokens[prev_iter_start_indx:indx_s]
-                        square = sample_tokens[indx_s:iter_end_indx + 1]
+                        prev_square = sample[prev_iter_start_indx:sample_index]
+                        square = sample[sample_index:iter_end_indx + 1]
 
                         internal_wrapper = roadrunner(prev_square, square, 0, 0, [])
 
                         if internal_wrapper is not None:
-                            wrapper = clean_wrapper_iterators(wrapper, smpl_token[1], internal_wrapper)
-                            return roadrunner(wrapper_tokens, sample_tokens, indx_w, iter_end_indx + 1, wrapper)
+                            solution = clean_wrapper_iterators(solution, smpl_token[1], internal_wrapper)
+                            return roadrunner(wrapper, sample, wrapper_index, iter_end_indx + 1, solution)
 
                         else:
                             iterative = False
@@ -233,15 +233,15 @@ def roadrunner(wrapper_tokens, sample_tokens, indx_w, indx_s, wrapper):
             # check for optional
             if not iterative:
                 # option is present on wrapper
-                if matching_tokens(wrapper_tokens[indx_w + 1], smpl_token):
+                if matching_tokens(wrapper[wrapper_index + 1], smpl_token):
                     optional = ["optional", " ".join(["(", wrap_token[1], ")?"])]
-                    wrapper.append(optional)
-                    return roadrunner(wrapper_tokens, sample_tokens, indx_w + 1, indx_s, wrapper)
+                    solution.append(optional)
+                    return roadrunner(wrapper, sample, wrapper_index + 1, sample_index, solution)
 
-                elif matching_tokens(wrap_token, sample_tokens[indx_s + 1]):
+                elif matching_tokens(wrap_token, sample[sample_index + 1]):
                     optional = ["optional", " ".join(["(", smpl_token[1], ")?"])]
-                    wrapper.append(optional)
-                    return roadrunner(wrapper_tokens, sample_tokens, indx_w, indx_s + 1, wrapper)
+                    solution.append(optional)
+                    return roadrunner(wrapper, sample, wrapper_index, sample_index + 1, solution)
                 else:
                     # print(": >>>> ", wrap_token, " vs ", smpl_token)
                     # print(": >>>> ", wrapper_tokens[indx_w+1], " vs ", smpl_token)

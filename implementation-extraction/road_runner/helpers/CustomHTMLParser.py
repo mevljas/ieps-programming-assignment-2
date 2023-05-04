@@ -8,11 +8,11 @@ class CustomHTMLParser(HTMLParser):
         self.page_tokens = []
 
     def handle_starttag(self, tag, attrs):
-        self.page_tokens.append(["initial_tag", tag])
+        self.page_tokens.append(["head_tag", tag])
         # print("< " + tag + " >")
 
     def handle_endtag(self, tag):
-        self.page_tokens.append(["terminal_tag", tag])
+        self.page_tokens.append(["tail_tag", tag])
         # print("</" + tag + " >")
 
     def handle_data(self, data):
