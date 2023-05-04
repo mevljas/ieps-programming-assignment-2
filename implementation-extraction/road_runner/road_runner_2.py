@@ -178,12 +178,14 @@ def roadrunner(first_page: [str], second_page: [str], first_index: int, second_i
                           second_index=second_index + 1,
                           wrapper=wrapper)
     else:
-        # handle string mismatch:
+        # If the tokens aren't equal there has been a mismatch.
+        # Check whether both tokens are database fields.
         if first_token[0] == "data" and second_token[0] == "data":
+            # If both tokens are database fields it's a string mismatch.
             wrapper.append(["data", "#PCDATA"])
             return roadrunner(first_page, second_page, first_index + 1, second_index + 1, wrapper)
-        # tag mismatch - either an optional or an iterative
         else:
+            # If at least one of the tokens isn't a database field, it's a tag mismatch.
             iterative = True
 
             # check for iterative
