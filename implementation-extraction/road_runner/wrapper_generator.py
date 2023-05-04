@@ -1,31 +1,32 @@
 from road_runner.helpers.constants import STRING_MISMATCH_FIELD, OPTIONAL_FIELD, ITERATOR_FIELD, HTML_TAG_START
 
 
-def get_tag_sublist(tokens: [str], index: int) -> [str]:
+def remove_token_parents(tokens: [str], start_index: int) -> [str]:
     """
-    Gets a sublist of tokens from the opening to the closing tag.
+    Gets a subgroup of tokens from the opening tag at index to the closing tag.
     :param tokens: list of tokens.
-    :param index: index of the tag.
-    :return: A sublist of tokens from the opening to the closing tag.
+    :param start_index: index of the removing tag.
+    :return: a subgroup of tokens from the opening tag at index to the closing tag.
     """
-    start_index = index
+    start_index = start_index
     required_tail_tags = 0
     tokens_subset = []
-    while index < len(tokens):
-        if required_tail_tags == 0 and index != start_index:
+    while start_index < len(tokens):
+        if required_tail_tags == 0 and start_index != start_index:
             break
-        tokens_subset.append(tokens[index])
-        current_tag = tokens[index]
+        tokens_subset.append(tokens[start_index])
+        current_tag = tokens[start_index]
         if current_tag[0] == "<":
             if current_tag[1] != "/":
                 required_tail_tags += 1
             else:
                 required_tail_tags -= 1
-        index += 1
+        start_index += 1
     return tokens_subset
 
 
-def wrapper_generalization(solution: [str], tokens_index: int, length: int, tokens: [str]) -> ([str], int):
+def wrapper_generalization_optional_field(solution: [str], tokens_index: int, length: int, tokens: [str]) \
+        -> ([str], int):
     """
     Generalize the wrapper by incorporating optional fields.
     :param solution: currently generated wrapper.
@@ -115,11 +116,11 @@ def generate_wrapper(wrapper: [str], sample: [str]) -> [str]:
         sample_index = 1
         # Group together tokens inside top level tags.
         while wrapper_index < len(wrapper) - 1:
-            first_page_tag_group = get_tag_sublist(tokens=wrapper, index=wrapper_index)
+            first_page_tag_group = remove_token_parents(tokens=wrapper, start_index=wrapper_index)
             wrapper_index += len(first_page_tag_group)
             wrapper_token_groups.append(first_page_tag_group)
         while sample_index < len(sample) - 1:
-            second_page_tag_group = get_tag_sublist(tokens=sample, index=sample_index)
+            second_page_tag_group = remove_token_parents(tokens=sample, start_index=sample_index)
             sample_index += len(second_page_tag_group)
             sample_token_groups.append(second_page_tag_group)
         wrapper_group_index = 0
@@ -145,29 +146,30 @@ def generate_wrapper(wrapper: [str], sample: [str]) -> [str]:
                     # Tag Mismatches: Discovering Optionals -> Wrapper Generalization
                     partial_solution, wrapper_index, sample_index = optional_field
                     # Add optional fields to the solution.
-                    solution_parts, wrapper_group_index = wrapper_generalization(solution=solution_parts,
-                                                                                 tokens_index=wrapper_group_index,
-                                                                                 length=wrapper_index,
-                                                                                 tokens=wrapper_token_groups)
-                    solution_parts, sample_group_index = wrapper_generalization(solution=solution_parts,
-                                                                                tokens_index=sample_group_index,
-                                                                                length=sample_index,
-                                                                                tokens=sample_token_groups)
+                    solution_parts, wrapper_group_index = wrapper_generalization_optional_field(
+                        solution=solution_parts,
+                        tokens_index=wrapper_group_index,
+                        length=wrapper_index,
+                        tokens=wrapper_token_groups)
+                    solution_parts, sample_group_index = wrapper_generalization_optional_field(
+                        solution=solution_parts,
+                        tokens_index=sample_group_index,
+                        length=sample_index,
+                        tokens=sample_token_groups)
                     solution_parts.append(partial_solution)
                 else:
                     if len(wrapper_token_groups) == len(sample_token_groups) and len(
                             wrapper_token_groups) == 1:
-                        # Both groups contain only one element.
+                        # Both groups contain only one token group.
                         while len(wrapper_token_groups[0]) != len(sample_token_groups[0]):
-                            # While first items of both token groups are of a different length.
+                            # While items of both token groups are of a different length.
+                            # Remove the top level token (top level opening and closing tag) of the longer group.
                             if len(wrapper_token_groups[0]) > len(sample_token_groups[0]):
-                                # Remove the first tag
-                                tag_sublist = get_tag_sublist(tokens=wrapper_token_groups[0], index=1)
-                                wrapper_token_groups[0] = list(tag_sublist)
+                                wrapper_token_groups[0] = remove_token_parents(tokens=wrapper_token_groups[0],
+                                                                               start_index=1)
                             else:
-                                # Remove the first tag
-                                tag_sublist = get_tag_sublist(tokens=sample_token_groups[0], index=1)
-                                sample_token_groups[0] = list(tag_sublist)
+                                sample_token_groups[0] = remove_token_parents(tokens=sample_token_groups[0],
+                                                                              start_index=1)
                         partial_solution = generate_wrapper(wrapper=wrapper_token_groups[0],
                                                             sample=sample_token_groups[0])
                         if len(partial_solution) == 0:
