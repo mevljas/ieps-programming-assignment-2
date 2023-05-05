@@ -15,7 +15,7 @@ def compare_tokens(first: Token, second: Token) -> bool:
     if first.token_type == second.token_type and first.value == second.value:
         return True
     elif first.token_type == TOKEN_TYPE.OPTIONAL and first.value[1:-2] == second.value:
-        print("Optional token matching.", file=sys.stderr)
+        # Optional token matching.
         return True
 
     return False

@@ -16,7 +16,6 @@ class MyTestCase(unittest.TestCase):
         with contextlib.redirect_stdout(temp_stdout):
             start_running(first_html=html_1, second_html=html_2)
         output = temp_stdout.getvalue().strip()
-        print(output)
         self.assertEqual(output, expected_result)
 
     def test_complex_case(self):
@@ -27,7 +26,6 @@ class MyTestCase(unittest.TestCase):
         with contextlib.redirect_stdout(temp_stdout):
             start_running(first_html=html_1, second_html=html_2)
         output = temp_stdout.getvalue().strip()
-        print(output)
         self.assertEqual(output, expected_result)
 
 
