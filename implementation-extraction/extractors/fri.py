@@ -79,18 +79,12 @@ def xpath(html) -> None:
     print(json.dumps(data, indent=4, ensure_ascii=False))
 
 def run_regular_expressions() -> None:
-    print("Running regular expressions for first page...")
     regular_expressions(student_devrev_html)
-    print("Running regular expressions for second page...")
     regular_expressions(info_dan_mag_html)
-    print("Done.")
 
 def run_xpath() -> None:
-    print("Running XPath for first page...")
     xpath(student_devrev_html)
-    print("Running XPath for second page...")
     xpath(info_dan_mag_html)
-    print("Done.")
 
 def run_road_runner() -> None:
     start_running(first_html=student_devrev_html, second_html=info_dan_mag_html)

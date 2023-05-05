@@ -100,19 +100,13 @@ def xpath(html) -> None:
 
 
 def run_regular_expressions() -> None:
-    print("Running regular expressions for first page...")
     regular_expressions(jewelry_html_1)
-    print("Running regular expressions for second page...")
     regular_expressions(jewelry_html_2)
-    print("Done.")
 
 
 def run_xpath() -> None:
-    print("Running XPath for first page...")
     xpath(jewelry_html_1)
-    print("Running XPath for second page...")
     xpath(jewelry_html_2)
-    print("Done.")
 
 
 def run_road_runner() -> None:
