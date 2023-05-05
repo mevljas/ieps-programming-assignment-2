@@ -59,32 +59,35 @@ def get_printable_wrapper(wrapper: [Token], new_line: str = '\n') -> str:
     is_optional: bool = False
 
     for token in wrapper:
-        if token.token_type == TOKEN_TYPE.OPENING_TAG:
-            buffer += close_optional_tag(is_optional=is_optional, new_line=new_line)
-            is_optional = False
-            buffer += f"<{token.value}>{new_line}"
-        elif token.token_type == TOKEN_TYPE.CLOSING_TAG:
-            buffer += close_optional_tag(is_optional=is_optional)
-            is_optional = False
-            buffer += f"</{token.value}>{new_line}"
-        elif token.token_type == TOKEN_TYPE.OPTIONAL:
-            if not is_optional:
-                buffer += "("
-                is_optional = True
-            if token.real_tag == TOKEN_TYPE.OPENING_TAG:
-                buffer += f"<{token.value}>"
-            elif token.real_tag == TOKEN_TYPE.CLOSING_TAG:
-                buffer += f"<{token.value}/>"
-            else:
-                buffer += token.value
-        elif token.token_type == TOKEN_TYPE.ITERATOR:
-            buffer += close_optional_tag(is_optional=is_optional, new_line='')
-            is_optional = False
-            buffer += f"({get_printable_wrapper(wrapper=token.value, new_line='')})+{new_line}"
-        else:
-            buffer += close_optional_tag(is_optional=is_optional)
-            is_optional = False
-            buffer += token.value + new_line
+        match token.token_type:
+            case TOKEN_TYPE.OPENING_TAG:
+                buffer += close_optional_tag(is_optional=is_optional, new_line=new_line)
+                is_optional = False
+                buffer += f"<{token.value}>{new_line}"
+            case TOKEN_TYPE.CLOSING_TAG:
+                buffer += close_optional_tag(is_optional=is_optional)
+                is_optional = False
+                buffer += f"</{token.value}>{new_line}"
+            case TOKEN_TYPE.OPTIONAL:
+                if not is_optional:
+                    buffer += "("
+                    is_optional = True
+                if token.real_tag == TOKEN_TYPE.OPENING_TAG:
+                    buffer += f"<{token.value}>"
+                elif token.real_tag == TOKEN_TYPE.CLOSING_TAG:
+                    buffer += f"<{token.value}/>"
+                else:
+                    buffer += token.value
+            case TOKEN_TYPE.ITERATOR:
+                buffer += close_optional_tag(is_optional=is_optional, new_line='')
+                is_optional = False
+                buffer += f"({get_printable_wrapper(wrapper=token.value, new_line='')})+{new_line}"
+            case _:
+                buffer += close_optional_tag(is_optional=is_optional)
+                is_optional = False
+                buffer += token.value + new_line
+
+
 
     return buffer
 
