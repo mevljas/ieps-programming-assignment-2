@@ -240,17 +240,19 @@ def road_runner(first_page: [Token], second_page: [Token], first_index: int, sec
                 wrapper = wrapper_generalization_optional_field(wrapper=wrapper, token=page2_token)
                 return road_runner(first_page, second_page, first_index, second_index + 1, wrapper)
         else:
-            # TODO: Skip tokens, because they're different?
-            # Try skipping the first token
+            # Backtrace -> End of the branch.
+            return []
+            # #Try skipping the first token
             # new_wrapper = road_runner(first_page, second_page, first_index + 1, second_index, wrapper)
-            # Try skipping the second token
             # if len(new_wrapper) != 0:
             #     return new_wrapper
+            # #Try skipping the second token
             # new_wrapper = road_runner(first_page, second_page, first_index, second_index + 1, wrapper)
             # if len(new_wrapper) != 0:
             #     return new_wrapper
             # print("Error skipping optional pattern.", file=sys.stderr)
-            return road_runner(first_page, second_page, first_index + 1, second_index + 1, wrapper)
+            # return road_runner(first_page, second_page, first_index + 1, second_index + 1, wrapper)
+
 
 
 def start_running(first_html: str, second_html: str) -> None:
