@@ -1,8 +1,8 @@
-from typing import Any
-
 from bs4 import BeautifulSoup, Comment
 
-from road_runner.helpers.constants import IGNORED_TAGS, IGNORED_TOKENS, HTML_TAG_START
+from road_runner.helpers.CustomHTMLParser import CustomHTMLParser
+from road_runner.helpers.Token import Token
+from road_runner.helpers.constants import TOKEN_TYPE, IGNORED_TAGS
 
 
 def create_soup(html: str) -> BeautifulSoup:
@@ -23,71 +23,55 @@ def clean_html(soup: BeautifulSoup) -> BeautifulSoup:
     # Remove tags.
     [x.extract() for x in soup.findAll(IGNORED_TAGS)]
     # Find comments.
-    comments = soup.findAll(text=lambda text: isinstance(text, Comment))
+    comments = soup.findAll(string=lambda text: isinstance(text, Comment))
     # Remove comments.
     [comment.extract() for comment in comments]
     return soup
 
 
-def clean_tokens(tokens: [str]) -> [str]:
+def tokenize(page: str, html_parser: CustomHTMLParser) -> [str]:
     """
-    Removes unnecessary tokens.
-    :param tokens: a list of tokens.
-    :return: filtered list of tokens.
-    """
-    return list(filter(lambda token: token not in IGNORED_TOKENS, tokens))
-
-
-def generate_tokens(html_element: any) -> [str]:
-    """
-    Generate tokens from BeautifulSoup HTML elements.
-    :param html_element: beautifulSoup HTML element.
+    Generate tokens from the HTML page using html_parser.
+    :param html_parser: CustomHTMLParser object.
+    :param page: HTML page string.
     :return: a list of tokens.
     """
-    tokens = [f'<{html_element.name}>']
-    for child in html_element.contents:
-        if not isinstance(child, str):
-            tokens.extend(generate_tokens(html_element=child))
+    html_parser.feed(page)
+    return html_parser.tokens
+
+
+def get_printable_wrapper(wrapper: [Token], new_line: str = '\n') -> str:
+    """
+    Generate printable string presentation of the wrapper.
+    :param new_line: new line character which can be overridden to not print new lines.
+    :param wrapper: roadrunner generated wrapper.
+    :return: printable string presentation of the wrapper.
+    """
+    buffer = ""
+
+    for token in wrapper:
+        if token.token_type == TOKEN_TYPE.OPENING_TAG:
+            buffer += f"<{token.value}>{new_line}"
+        elif token.token_type == TOKEN_TYPE.CLOSING_TAG:
+            buffer += f"</{token.value}>{new_line}"
+        elif token.token_type == TOKEN_TYPE.OPTIONAL:
+            buffer += f"({token.value})?{new_line}"
+        elif token.token_type == TOKEN_TYPE.ITERATOR:
+            buffer += f"({get_printable_wrapper(wrapper=token.value, new_line='')})+{new_line}"
         else:
-            tokens.extend(child.split())
-    tokens.append(f'</{html_element.name}>')
-    return tokens
+            buffer += token.value + new_line
+
+    return buffer
 
 
-def group_elements(tokens: [str]) -> [str]:
+def prepare_data(first_html: str, second_html: str) -> ([Token], [Token]):
     """
-    Group elements between the opening and closing HTML tags.
-    :param tokens: a list of tokens.
-    :return: a list of grouped tokens.
-    """
-    grouped_tokens = []
-    window_start = 0
-    while window_start < len(tokens):
-        if tokens[window_start][0] != HTML_TAG_START:
-            # Token is a data item or a closing HTML tag.
-            window_end = window_start
-            # Find the closing html tag.
-            while tokens[window_end][0] != HTML_TAG_START:
-                # While the end of the windows is not the closing tag.
-                window_end = window_end + 1
-            # The closing HTML tag was found.
-            # Concatenate all items between the opening and closing HTML data.
-            grouped_tokens.append(" ".join(tokens[window_start:window_end]))
-            window_start = window_end
-        else:
-            # Append the opening HTML tag.
-            grouped_tokens.append(tokens[window_start])
-            window_start = window_start + 1
-    return grouped_tokens
-
-
-def prepare_data(first_html: str, second_html: str) -> tuple[Any, Any]:
-    """
-    Prepare the input data for the roadrunner algorithm.
+    Prepares the input data for the roadrunner algorithm.
     :param first_html: HTML of the first page.
     :param second_html: HTML of the second page.
     :return: first and second page tokens.
     """
+
     # Create Beautiful soup objects.
     first_soup = create_soup(html=first_html)
     second_soup = create_soup(html=second_html)
@@ -96,16 +80,12 @@ def prepare_data(first_html: str, second_html: str) -> tuple[Any, Any]:
     first_soup = clean_html(soup=first_soup)
     second_soup = clean_html(soup=second_soup)
 
-    # Generate tokens from HTML tags and items.
-    first_page_tokens = generate_tokens(html_element=first_soup)
-    second_page_tokens = generate_tokens(html_element=second_soup)
+    # Create HTML parser.
+    html_parser = CustomHTMLParser()
 
-    # Clean tokens.
-    first_page_tokens = clean_tokens(tokens=first_page_tokens)
-    second_page_tokens = clean_tokens(tokens=second_page_tokens)
-
-    # Group elements between the opening and closing HTML tags.
-    first_page_tokens = group_elements(tokens=first_page_tokens)
-    second_page_tokens = group_elements(tokens=second_page_tokens)
+    # Generate tokens from HTML.
+    first_page_tokens = tokenize(page=first_soup.prettify(), html_parser=html_parser)
+    html_parser.reset_parser()
+    second_page_tokens = tokenize(page=second_soup.prettify(), html_parser=html_parser)
 
     return first_page_tokens, second_page_tokens
