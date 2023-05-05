@@ -39,6 +39,14 @@ def tokenize(page: str, html_parser: CustomHTMLParser) -> [str]:
     html_parser.feed(page)
     return html_parser.tokens
 
+def close_optional_tag(is_optional: bool, new_line: str = '\n') -> str:
+    """
+    Closes optional tag if it's currently open.
+    :param is_optional: Determines whether the tag is currently open.
+    :param new_line: Determines whether the text should end with a newline.
+    :return: Text which will be added to the buffer.
+    """
+    return f")?{new_line}" if is_optional else ""
 
 def get_printable_wrapper(wrapper: [Token], new_line: str = '\n') -> str:
     """
@@ -48,17 +56,34 @@ def get_printable_wrapper(wrapper: [Token], new_line: str = '\n') -> str:
     :return: printable string presentation of the wrapper.
     """
     buffer = ""
+    is_optional: bool = False
 
     for token in wrapper:
         if token.token_type == TOKEN_TYPE.OPENING_TAG:
+            buffer += close_optional_tag(is_optional=is_optional, new_line=new_line)
+            is_optional = False
             buffer += f"<{token.value}>{new_line}"
         elif token.token_type == TOKEN_TYPE.CLOSING_TAG:
+            buffer += close_optional_tag(is_optional=is_optional)
+            is_optional = False
             buffer += f"</{token.value}>{new_line}"
         elif token.token_type == TOKEN_TYPE.OPTIONAL:
-            buffer += f"({token.value})?{new_line}"
+            if not is_optional:
+                buffer += "("
+                is_optional = True
+            if token.real_tag == TOKEN_TYPE.OPENING_TAG:
+                buffer += f"<{token.value}>"
+            elif token.real_tag == TOKEN_TYPE.CLOSING_TAG:
+                buffer += f"<{token.value}/>"
+            else:
+                buffer += token.value
         elif token.token_type == TOKEN_TYPE.ITERATOR:
+            buffer += close_optional_tag(is_optional=is_optional, new_line='')
+            is_optional = False
             buffer += f"({get_printable_wrapper(wrapper=token.value, new_line='')})+{new_line}"
         else:
+            buffer += close_optional_tag(is_optional=is_optional)
+            is_optional = False
             buffer += token.value + new_line
 
     return buffer

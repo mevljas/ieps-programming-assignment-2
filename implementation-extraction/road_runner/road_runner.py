@@ -17,9 +17,6 @@ def compare_tokens(first: Token, second: Token) -> bool:
     elif first.token_type == TOKEN_TYPE.OPTIONAL and first.value[1:-2] == second.value:
         print("Optional token matching.", file=sys.stderr)
         return True
-    # elif first.token_type == TOKEN_TYPE.DATABASE_FIELD and second.token_type == TOKEN_TYPE.DATABASE_FIELD:
-    #     print("Database field matching.", file=sys.stderr)
-    #     return True
 
     return False
 
@@ -104,7 +101,7 @@ def wrapper_generalization_optional_field(wrapper: [Token], token: Token) -> [To
     :param token: page token.
     :return: generalized wrapper.
     """
-    wrapper.append(Token(token_type=TOKEN_TYPE.OPTIONAL, value=" ".join(["<", token.value, "/>"])))
+    wrapper.append(Token(token_type=TOKEN_TYPE.OPTIONAL, value=token.value, real_tag=token.token_type))
     return wrapper
 
 
