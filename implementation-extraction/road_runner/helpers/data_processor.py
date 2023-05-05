@@ -1,6 +1,32 @@
+from bs4 import BeautifulSoup, Comment
+
 from road_runner.helpers.CustomHTMLParser import CustomHTMLParser
 from road_runner.helpers.Token import Token
-from road_runner.helpers.constants import TOKEN_TYPE
+from road_runner.helpers.constants import TOKEN_TYPE, IGNORED_TAGS
+
+
+def create_soup(html: str) -> BeautifulSoup:
+    """
+    Creates a BeautifulSoup object with the provided html.
+    :param html: html data to be used.
+    :return: generated BeautifulSoup object.
+    """
+    return BeautifulSoup(html, "html.parser")
+
+
+def clean_html(soup: BeautifulSoup) -> BeautifulSoup:
+    """
+    Removes unnecessary tags and comments from the HTML.
+    :param soup: beautifulSoup object with html data to be cleaned.
+    :return: beautifulSoup object with cleaned html data.
+    """
+    # Remove tags.
+    [x.extract() for x in soup.findAll(IGNORED_TAGS)]
+    # Find comments.
+    comments = soup.findAll(string=lambda text: isinstance(text, Comment))
+    # Remove comments.
+    [comment.extract() for comment in comments]
+    return soup
 
 
 def tokenize(page: str, html_parser: CustomHTMLParser) -> [str]:
@@ -46,12 +72,20 @@ def prepare_data(first_html: str, second_html: str) -> ([Token], [Token]):
     :return: first and second page tokens.
     """
 
+    # Create Beautiful soup objects.
+    first_soup = create_soup(html=first_html)
+    second_soup = create_soup(html=second_html)
+
+    # Clean HTML.
+    first_soup = clean_html(soup=first_soup)
+    second_soup = clean_html(soup=second_soup)
+
     # Create HTML parser.
     html_parser = CustomHTMLParser()
 
     # Generate tokens from HTML.
-    first_page_tokens = tokenize(page=first_html, html_parser=html_parser)
+    first_page_tokens = tokenize(page=first_soup.prettify(), html_parser=html_parser)
     html_parser.reset_parser()
-    second_page_tokens = tokenize(page=second_html, html_parser=html_parser)
+    second_page_tokens = tokenize(page=second_soup.prettify(), html_parser=html_parser)
 
     return first_page_tokens, second_page_tokens

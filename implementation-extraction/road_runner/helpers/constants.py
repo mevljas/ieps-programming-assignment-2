@@ -2,3 +2,4 @@ from enum import Enum
 
 STRING_MISMATCH_FIELD = "#PCDATA"
 TOKEN_TYPE = Enum('TOKEN_TYPE', ['DATABASE_FIELD', 'OPENING_TAG', 'CLOSING_TAG', 'ITERATOR', 'OPTIONAL'])
+IGNORED_TAGS = ["style", "script", "meta"]

@@ -17,6 +17,9 @@ def compare_tokens(first: Token, second: Token) -> bool:
     elif first.token_type == TOKEN_TYPE.OPTIONAL and first.value[1:-2] == second.value:
         print("Optional token matching.", file=sys.stderr)
         return True
+    # elif first.token_type == TOKEN_TYPE.DATABASE_FIELD and second.token_type == TOKEN_TYPE.DATABASE_FIELD:
+    #     print("Database field matching.", file=sys.stderr)
+    #     return True
 
     return False
 
@@ -156,7 +159,8 @@ def road_runner(first_page: [Token], second_page: [Token], first_index: int, sec
     :return: generated wrapper.
     """
     # Recursive end condition.
-    if first_index == len(first_page) and second_index == len(second_page):
+    if first_index == len(first_page) and second_index == len(second_page) \
+            or first_index >= len(first_page) or second_index >= len(second_page):
         # The algorithm is finished.
         return wrapper
 
@@ -236,8 +240,17 @@ def road_runner(first_page: [Token], second_page: [Token], first_index: int, sec
                 wrapper = wrapper_generalization_optional_field(wrapper=wrapper, token=page2_token)
                 return road_runner(first_page, second_page, first_index, second_index + 1, wrapper)
         else:
-            print("Error skipping optional pattern.", file=sys.stderr)
-            return None
+            # TODO: Skip tokens, because they're different?
+            # Try skipping the first token
+            # new_wrapper = road_runner(first_page, second_page, first_index + 1, second_index, wrapper)
+            # Try skipping the second token
+            # if len(new_wrapper) != 0:
+            #     return new_wrapper
+            # new_wrapper = road_runner(first_page, second_page, first_index, second_index + 1, wrapper)
+            # if len(new_wrapper) != 0:
+            #     return new_wrapper
+            # print("Error skipping optional pattern.", file=sys.stderr)
+            return road_runner(first_page, second_page, first_index + 1, second_index + 1, wrapper)
 
 
 def start_running(first_html: str, second_html: str) -> None:
@@ -246,6 +259,7 @@ def start_running(first_html: str, second_html: str) -> None:
     :param first_html: HTML of the first page.
     :param second_html: HTML of the second page.
     """
+    sys.setrecursionlimit(5000)
     first_page, second_page = prepare_data(first_html=first_html, second_html=second_html)
     wrapper = road_runner(first_page, second_page, 0, 0, [])
     solution = get_printable_wrapper(wrapper=wrapper)

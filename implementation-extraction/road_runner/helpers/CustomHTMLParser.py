@@ -1,7 +1,7 @@
 from html.parser import HTMLParser
 
 from road_runner.helpers.Token import Token
-from road_runner.helpers.constants import TOKEN_TYPE, IGNORED_TAGS
+from road_runner.helpers.constants import TOKEN_TYPE
 
 
 class CustomHTMLParser(HTMLParser):
@@ -23,7 +23,9 @@ class CustomHTMLParser(HTMLParser):
         Handler for HTML closing tags.
         :param tag: HTML tag.
         """
-        self.tokens.append(Token(token_type=TOKEN_TYPE.CLOSING_TAG, value=tag))
+        # Workaround for a bug.
+        if tag != 'img':
+            self.tokens.append(Token(token_type=TOKEN_TYPE.CLOSING_TAG, value=tag))
 
     def handle_data(self, data: str) -> None:
         """
